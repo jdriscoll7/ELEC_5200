@@ -9,8 +9,11 @@
 /* Module for the control unit.
  *  
  * - Inputs:
- *     - op_code: 4 bit opcode from instruction 
+ *     - op_code: 4-bit opcode from instruction
+ *     - cond:    2-bit conditional code from branch instructions
  *
+ * - Outputs:
+ *     - 
  *
  *
  *
