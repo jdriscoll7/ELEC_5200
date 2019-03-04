@@ -1,0 +1,4 @@
+INFO: [VRFC 10-163] Analyzing VHDL file "//sage.eng.auburn.edu/homes/Desktop/class/5200/project_3/code/src/common/register.vhd" into library xil_defaultlib
+INFO: [VRFC 10-307] analyzing entity generic_register
+INFO: [VRFC 10-163] Analyzing VHDL file "//sage.eng.auburn.edu/homes/Desktop/class/5200/project_3/code/test/register_test.vhd" into library xil_defaultlib
+INFO: [VRFC 10-307] analyzing entity test_bench

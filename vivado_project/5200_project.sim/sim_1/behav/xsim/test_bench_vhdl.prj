@@ -1,0 +1,7 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"//sage.eng.auburn.edu/homes/Desktop/class/5200/project_3/code/src/common/register.vhd" \
+"//sage.eng.auburn.edu/homes/Desktop/class/5200/project_3/code/test/register_test.vhd" \
+
+# Do not sort compile order
+nosort
