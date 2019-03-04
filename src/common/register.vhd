@@ -14,10 +14,10 @@ entity generic_register is
 
     generic (N : integer := 8);
                  
-    port    (data_in        : in std_logic_vector((N - 1) downto 0),
-             data_out       : in std_logic_vector((N - 1) downto 0),
-             write_enable   : in std_logic,
-             clock          : in std_logic);
+    port    (data_in        : in  std_logic_vector((N - 1) downto 0);
+             data_out       : out std_logic_vector((N - 1) downto 0);
+             write_enable   : in  std_logic;
+             clock          : in  std_logic);
 
 end generic_register;
              
@@ -25,7 +25,7 @@ end generic_register;
 -- Register implementation. 
 architecture behavioral of generic_register is
 
-    signal stored_value : std_logic_vector((N - 1) downto 0) := 0;
+    signal stored_value : std_logic_vector((N - 1) downto 0) := (others => '0');
     
 begin
 
@@ -36,12 +36,14 @@ begin
             
             if (write_enable = '1') then
             
-                stored_value <= input;
+                stored_value <= data_in;
                 
             end if;
             
         end if;
     
     end process;
+    
+    data_out <= stored_value;
 
 end behavioral;

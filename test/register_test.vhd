@@ -23,8 +23,8 @@ architecture test of test_bench is
     -- Signals to connect UUT.
     signal data_in  : std_logic_vector((N - 1) downto 0) := (others => '0');
     signal data_out : std_logic_vector((N - 1) downto 0);
-    signal clock    : std_logic_vector := '0';
-    signal write_en : std_logic_vector := '0';
+    signal clock    : std_logic := '0';
+    signal write_en : std_logic := '0';
 
 begin
     
@@ -48,7 +48,7 @@ begin
         for test_val in 0 to ((2**N) - 1) loop
         
             -- Set input of register to current loop value.
-            input_value = std_logic_vector(to_unsigned(test_val, N));
+            input_value := std_logic_vector(to_unsigned(test_val, N));
             data_in <= input_value;
             
             -- Drive write enable.
