@@ -54,10 +54,20 @@ begin
             -- Drive write enable.
             write_en <= '1';
             
-            -- Wait for everything to settle before looping again.
+            -- Wait for everything to settle and assert.
+            wait for 100 ns;
+            
+            assert(input_value = data_out)
+                report "Output data was not set correctly."
+                severity FAILURE;
+            
+            write_en <= '0';
             wait for 100 ns;
         
+        
         end loop;
+    
+        wait;
     
     end process;
     
