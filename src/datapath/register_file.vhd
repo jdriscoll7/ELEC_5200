@@ -18,7 +18,7 @@ use ieee.numeric_std.all;
 entity register_file is
 
     generic (REGISTER_SIZE  : integer := 8;
-             ADDRESS_BITS   : integer := 128);
+             ADDRESS_BITS   : integer := 10);
              
     port    (read_address_1 : in  std_logic_vector((ADDRESS_BITS - 1)  downto 0);
              read_address_2 : in  std_logic_vector((ADDRESS_BITS - 1)  downto 0);
@@ -40,11 +40,6 @@ architecture behavioral of register_file is
     -- Register file storage as a signal.
     signal register_file_storage : register_file_t;
     
-    -- Store casted read/write addresses in variables for readability.
-    constant r_addr_1 : integer := to_integer(unsigned(read_address_1));
-    constant r_addr_2 : integer := to_integer(unsigned(read_address_2));
-    constant w_addr   : integer := to_integer(unsigned(write_address));
-
 begin
 
     -- Handle register writes.
@@ -53,14 +48,14 @@ begin
         
         if rising_edge(write_enable) then
         
-            register_file_storage(w_addr) <= data_in;
+            register_file_storage(to_integer(unsigned(write_address))) <= data_in;
             
         end if;
         
     end process;
     
     -- Constantly output read registers on the two output ports.
-    data_out_1 <= register_file_storage(r_addr_1);
-    data_out_2 <= register_file_storage(r_addr_2);
+    data_out_1 <= register_file_storage(to_integer(unsigned(read_address_1)));
+    data_out_2 <= register_file_storage(to_integer(unsigned(read_address_2)));
 
 end behavioral;
