@@ -83,7 +83,7 @@ entity control_unit is
 
     port (op_code           : in  op_code_t;
           condition         : in  condition_t;
-          control_SIGNALS   : out control_signal_bus_t);
+          control_signals   : out control_signal_bus_t);
 
 end control_unit;
 
