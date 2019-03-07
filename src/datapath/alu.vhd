@@ -15,13 +15,13 @@ use work.types.all;
 entity alu is
 
     -- This generic should not really be changed.
-    generic (IO_WIDTH : integer := 15);
+    generic (IO_WIDTH : integer := 16);
 
-    port    (alu_op  : in  alu_op_t;
-             alu_in1 : in  std_logic_vector((IO_WIDTH - 1) downto 0);
-             alu_in2 : in  std_logic_vector((IO_WIDTH - 1) downto 0);
-             alu_out : out std_logic_vector((IO_WIDTH - 1) downto 0);
-             zero    : out std_logic);
+    port    (alu_op    : in  alu_op_t;
+             alu_in1   : in  std_logic_vector((IO_WIDTH - 1) downto 0);
+             alu_in2   : in  std_logic_vector((IO_WIDTH - 1) downto 0);
+             alu_out   : out std_logic_vector((IO_WIDTH - 1) downto 0) := (others => '0');
+             zero_flag : out std_logic := '0');
 
 end alu;
 
@@ -30,7 +30,9 @@ architecture behavioral of alu is
 
     -- Store results and assign after process for neatness.
     signal alu_result : std_logic_vector((IO_WIDTH - 1) downto 0);
-    signal zero_flag  : std_logic;
+    
+    -- 0 comparison value for ALU output.
+    constant zero_compare : std_logic_vector((IO_WIDTH - 1) downto 0) := (others => '0');
 
 begin
 
@@ -77,30 +79,21 @@ begin
             when alu_shift_right =>
                 
                 -- Shift the first input to the right by the amount in the second input.
-                alu_result <= std_logic_vector(shift_right(unsigned(alu_in1), to_integer(unsigned(alu_in2))));
+                alu_result <= std_logic_vector(shift_right(signed(alu_in1), to_integer(signed(alu_in2))));
                 
             when alu_shift_left =>
                 
                 -- Shift the first input to the left by the amount in the second input.
-                alu_result <= std_logic_vector(shift_left(unsigned(alu_in1), to_integer(unsigned(alu_in2))));
+                alu_result <= std_logic_vector(shift_left(signed(alu_in1), to_integer(signed(alu_in2))));
         
         end case;
-        
-        -- Set zero flag if needed.
-        if (to_integer(unsigned(alu_result)) = 0) then
-            
-            zero_flag <= '1';
-            
-        else
-            
-            zero_flag <= '0';
-            
-        end if;
     
     end process;
     
-    -- Set the ALU output and the zero flag accordingly.
-    alu_out <= alu_result;
-    zero    <= zero_flag;
+    -- Set the ALU output.
+    alu_out   <= alu_result;
+    
+    -- Set the zero flag.
+    zero_flag <= '1' when (alu_result = zero_compare) else '0';
 
 end behavioral;

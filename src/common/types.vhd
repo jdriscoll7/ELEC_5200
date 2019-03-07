@@ -5,7 +5,7 @@
 
 package types is
 
-    -- ALU type definitions.
+    -- ALU operating type definitions.
     type alu_op_t is (alu_add, 
                       alu_sub, 
                       alu_and, 
