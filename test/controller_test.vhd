@@ -1,16 +1,18 @@
 -- File: controller_test.vhd
 --
 -- Testbench for controller component.
---
+
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all; 
 
+
 library work;
 use work.all;
 use work.types.all;
 use work.control_unit_package.all;
+
 
 entity controller_test_bench is 
 end controller_test_bench;
@@ -26,7 +28,7 @@ architecture test of controller_test_bench is
     constant AND_SIGNALS    : std_logic_vector(12 downto 0) := "0100000000100";
     constant OR_SIGNALS     : std_logic_vector(12 downto 0) := "0110000000100";
     constant NOT_SIGNALS    : std_logic_vector(12 downto 0) := "1000000000100";
-    constant CMP_SIGNALS    : std_logic_vector(12 downto 0) := "0001000000000";
+    constant CMP_SIGNALS    : std_logic_vector(12 downto 0) := "0011000000000";
     constant BR_SIGNALS     : std_logic_vector(12 downto 0) := "0000010000000";
     constant B_SIGNALS      : std_logic_vector(12 downto 0) := "0000000000000";
     constant BL_SIGNALS     : std_logic_vector(12 downto 0) := "0000000000110";

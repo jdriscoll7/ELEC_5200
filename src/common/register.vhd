@@ -1,4 +1,4 @@
--- File: register.vhdl
+-- File: register.vhd
 -- 
 -- Implements a generic register model.
 

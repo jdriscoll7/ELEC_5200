@@ -1,11 +1,12 @@
 -- File: register_file_test.vhd
 --
 -- Testbench for register file component.
---
+
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all; 
+
 
 library work;
 use work.all;

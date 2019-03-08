@@ -116,7 +116,7 @@ architecture behavioral of control_unit is
     constant AND_SIGNALS    : control_constant_t := "0100000000100";
     constant OR_SIGNALS     : control_constant_t := "0110000000100";
     constant NOT_SIGNALS    : control_constant_t := "1000000000100";
-    constant CMP_SIGNALS    : control_constant_t := "0001000000000";
+    constant CMP_SIGNALS    : control_constant_t := "0011000000000";
     constant BR_SIGNALS     : control_constant_t := "0000010000000";
     constant B_SIGNALS      : control_constant_t := "0000000000000";
     constant BL_SIGNALS     : control_constant_t := "0000000000110";

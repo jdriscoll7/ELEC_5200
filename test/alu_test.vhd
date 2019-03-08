@@ -1,11 +1,18 @@
+-- File: alu_test.vhd
+--
+-- Testbench for the ALU component.
+
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all; 
+
 
 -- Import custom types.
 library work;
 use work.types.all;
 use work.all;
+
 
 entity alu_test_bench is 
 end alu_test_bench;
@@ -25,19 +32,6 @@ architecture test of alu_test_bench is
     
     -- Constant for comparison to output to all zero's.
     constant zeros_compare : std_logic_vector(15 downto 0) := (others => '0');
-    
-    -- Constant array of size 9 for some test values.
-    subtype test_pattern_t is integer range -16384 to 16383;
-    type test_pattern_array_t is array(8 downto 0) of test_pattern_t;
-    constant input_2_values : test_pattern_array_t := (-1000, 
-                                                       -100,
-                                                       -15,
-                                                       -1,
-                                                       0,
-                                                       1,
-                                                       15,
-                                                       100,
-                                                       1000);
 
 begin
 
@@ -56,7 +50,7 @@ begin
     begin
         -- Test all values for input_1, and selected values for input_2.
         for input_1 in (-2**14) to ((2**14) - 1) loop
-            for input_2 in (-2**14) to ((2**14) - 1) loop
+            for input_2 in -100 to 100 loop
             
             -- Check correctness of ALU output for each operation.
             expected_output  <= std_logic_vector(to_signed(input_1 + input_2, 16));
@@ -145,7 +139,8 @@ begin
             
             -- Next alu op type.
             alu_op <= alu_shift_right;
-            expected_output   <= std_logic_vector(shift_right(to_signed(input_1, 16), to_integer(to_signed(input_2, 16))));
+            expected_output   <= std_logic_vector(shift_right(to_signed(input_1, 16), 
+                                                              to_integer(to_signed(input_2, 16))));
             wait for 20 ns;
             
             -- Shift right with zero check.
@@ -160,7 +155,8 @@ begin
             
             -- Next alu op type.
             alu_op <= alu_shift_left;
-            expected_output   <= std_logic_vector(shift_left(to_signed(input_1, 16), to_integer(to_signed(input_2, 16))));
+            expected_output   <= std_logic_vector(shift_left(to_signed(input_1, 16), 
+                                                             to_integer(to_signed(input_2, 16))));
             wait for 20 ns;
             
             -- Shift left with zero check.

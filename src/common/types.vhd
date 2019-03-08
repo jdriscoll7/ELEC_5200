@@ -2,8 +2,10 @@
 --
 -- Declares some types common across implementations.
 
+
 library ieee;
 use ieee.std_logic_1164.all;
+
 
 package types is
 

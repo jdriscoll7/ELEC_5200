@@ -38,7 +38,7 @@ architecture behavioral of register_file is
     type    register_file_t is array(((2**ADDRESS_BITS) - 1) downto 0) of register_t;
     
     -- Register file storage as a signal.
-    signal register_file_storage : register_file_t;
+    signal register_file_storage : register_file_t := (others => (others => '0'));
     
 begin
 
