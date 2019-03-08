@@ -19,7 +19,7 @@ end test_bench;
 architecture test of test_bench is
 
     -- Size of register to test.
-    constant N : integer := 8;
+    constant N : integer := 16;
 
     -- Signals to connect UUT.
     signal data_in  : std_logic_vector((N - 1) downto 0) := (others => '0');
