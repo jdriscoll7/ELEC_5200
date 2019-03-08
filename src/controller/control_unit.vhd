@@ -58,7 +58,7 @@ package body control_unit_package is
     begin
         
         output_vector(12 downto 10) := x.c_alu_op;
-        output_vector(9) := x.c_compare;
+        output_vector(9)  := x.c_compare;
         output_vector(8)  := x.c_i_type;
         output_vector(7)  := x.c_r_type;
         output_vector(6)  := x.c_load_imm;
