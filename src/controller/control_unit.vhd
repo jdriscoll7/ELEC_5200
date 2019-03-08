@@ -14,24 +14,11 @@ use work.types.all;
 -- control signals into a single bus using VHDL records (like a C-struct).
 package control_unit_package is
 
-    -- Bus that packs all control signals like a C struct.
-    type control_signal_bus_t is record
-        c_alu_op    : std_logic_vector(2 downto 0);
-        c_compare   : std_logic;
-        c_i_type    : std_logic;
-        c_fetch     : std_logic;
-        c_mem_write : std_logic;
-        c_link      : std_logic;
-        c_reg_write : std_logic;
-        c_mem_read  : std_logic;
-        c_load_imm  : std_logic;
-        c_upper_imm : std_logic;
-        c_r_type    : std_logic;
-        c_branch    : std_logic;
-    end record control_signal_bus_t;
-
     -- Function interface for casting std_logic_vector to control_signal_bus_t.
     function control_signal_bus(x : in std_logic_vector) return control_signal_bus_t;
+    
+    -- Function for converting control signal bus back to std_logic_vector.
+    function to_std_logic_vector(x : in control_signal_bus_t) return std_logic_vector;
 
 end package control_unit_package;
 
@@ -46,24 +33,49 @@ package body control_unit_package is
 
     begin
 
-        output_bus.c_alu_op    := x((x'length - 1) downto (x'length - 3));
-        output_bus.c_compare   := x(10);
-        output_bus.c_i_type    := x(9);
-        output_bus.c_r_type    := x(8);
-        output_bus.c_load_imm  := x(7);
-        output_bus.c_upper_imm := x(6);
-        output_bus.c_fetch     := x(5);
-        output_bus.c_mem_read  := x(4);
-        output_bus.c_mem_write := x(3);
-        output_bus.c_reg_write := x(2);
-        output_bus.c_link      := x(1);
-        output_bus.c_branch    := x(0);
-
+        output_bus.c_alu_op     := x(13 downto 11);
+        output_bus.c_compare    := x(10);
+        output_bus.c_i_type     := x(9);
+        output_bus.c_r_type     := x(8);
+        output_bus.c_load_imm   := x(7);
+        output_bus.c_upper_imm  := x(6);
+        output_bus.c_fetch      := x(5);
+        output_bus.c_mem_read   := x(4);
+        output_bus.c_mem_write  := x(3);
+        output_bus.c_reg_write  := x(2);
+        output_bus.c_link       := x(1);
+        output_bus.c_branch     := x(0);
+        output_bus.size         := x'length;
+        
         return output_bus;
 
     end function control_signal_bus;
+    
+    -- Function for converting control signal bus back to std_logic_vector.
+    function to_std_logic_vector(x : in control_signal_bus_t) return std_logic_vector is
+    
+        variable output_vector : std_logic_vector((x.size - 1) downto 0);
+        
+    begin
+        
+        output_vector(13 downto 11) := x.c_alu_op;
+        output_vector(10) := x.c_compare;
+        output_vector(9)  := x.c_i_type;
+        output_vector(8)  := x.c_r_type;
+        output_vector(7)  := x.c_load_imm;
+        output_vector(6)  := x.c_upper_imm;
+        output_vector(5)  := x.c_fetch;
+        output_vector(4)  := x.c_mem_read;
+        output_vector(3)  := x.c_mem_write;
+        output_vector(2)  := x.c_reg_write;
+        output_vector(1)  := x.c_link;
+        output_vector(0)  := x.c_branch;
+        
+        return output_vector;
+        
+    end function to_std_logic_vector;
+    
 end package body control_unit_package;
-
 
 
 
@@ -82,7 +94,8 @@ use work.control_unit_package.all;
 entity control_unit is
 
     port (op_code           : in  op_code_t;
-          condition         : in  condition_t;
+          in_condition      : in  condition_t;
+          pc_condition      : in  condition_t;
           clock             : in  std_logic;
           control_signals   : out control_signal_bus_t);
 
@@ -94,8 +107,8 @@ end control_unit;
 architecture behavioral of control_unit is
 
     -- Number of control signals can change after updates to design.
-    constant num_control_SIGNALS : integer := 14;
-    subtype control_constant_t is std_logic_vector((num_control_SIGNALS - 1) downto 0);
+    constant num_control_signals : integer := 14;
+    subtype control_constant_t is std_logic_vector((num_control_signals - 1) downto 0);
 
     -- This table is based on the tables created for the second project report.
     constant ADD_SIGNALS    : control_constant_t := "00000000000100";
@@ -106,9 +119,9 @@ architecture behavioral of control_unit is
     constant OR_SIGNALS     : control_constant_t := "01100000000100";
     constant NOT_SIGNALS    : control_constant_t := "10000000000100";
     constant CMP_SIGNALS    : control_constant_t := "00010000000000";
-    constant BR_SIGNALS     : control_constant_t := "00000100000001";
-    constant B_SIGNALS      : control_constant_t := "00000000000001";
-    constant BL_SIGNALS     : control_constant_t := "00000000000111";
+    constant BR_SIGNALS     : control_constant_t := "00000100000000";
+    constant B_SIGNALS      : control_constant_t := "00000000000000";
+    constant BL_SIGNALS     : control_constant_t := "00000000000110";
     constant LOADIL_SIGNALS : control_constant_t := "00000010000100";
     constant LOADIU_SIGNALS : control_constant_t := "00000011000100";
     constant ADDI_SIGNALS   : control_constant_t := "00001000000100";
@@ -117,26 +130,49 @@ architecture behavioral of control_unit is
 
 begin
 
-    process(op_code, condition)
+    process(op_code, in_condition)
+    
+        -- Need to OR the constant patterns with branch taken signal based on input
+        -- control signal ports.
+        variable branch_setter : std_logic_vector(13 downto 0) := (others => '0');
+    
+        -- Need variables that store OR'd signals to preserve bit ordering.
+        variable br_or : std_logic_vector(13 downto 0);
+        variable b_or  : std_logic_vector(13 downto 0);
+        variable bl_or : std_logic_vector(13 downto 0);
+    
     begin
 
+        -- Set branch based on input condition from instruction and condition in PC.
+        if (in_condition = pc_condition) then
+            branch_setter := "00000000000001";
+        else
+            branch_setter := "00000000000000";
+        end if;
+
+        br_or := BR_SIGNALS or branch_setter;
+        b_or  := B_SIGNALS  or branch_setter;
+        bl_or := BL_SIGNALS or branch_setter;
+    
         case op_code is
-            when add_op     => control_SIGNALS <= control_signal_bus(ADD_SIGNALS);
-            when sub_op     => control_SIGNALS <= control_signal_bus(SUB_SIGNALS);
-            when str_op     => control_SIGNALS <= control_signal_bus(STR_SIGNALS);
-            when ldr_op     => control_SIGNALS <= control_signal_bus(LDR_SIGNALS);
-            when and_op     => control_SIGNALS <= control_signal_bus(AND_SIGNALS);
-            when or_op      => control_SIGNALS <= control_signal_bus(OR_SIGNALS);
-            when not_op     => control_SIGNALS <= control_signal_bus(NOT_SIGNALS);
-            when cmp_op     => control_SIGNALS <= control_signal_bus(CMP_SIGNALS);
-            when br_op      => control_SIGNALS <= control_signal_bus(BR_SIGNALS);
-            when b_op       => control_SIGNALS <= control_signal_bus(B_SIGNALS);
-            when bl_op      => control_SIGNALS <= control_signal_bus(BL_SIGNALS);
-            when loadil_op  => control_SIGNALS <= control_signal_bus(LOADIL_SIGNALS);
-            when loadiu_op  => control_SIGNALS <= control_signal_bus(LOADIU_SIGNALS);
-            when addi_op    => control_SIGNALS <= control_signal_bus(ADDI_SIGNALS);
-            when lsr_op     => control_SIGNALS <= control_signal_bus(LSR_SIGNALS);
-            when lsl_op     => control_SIGNALS <= control_signal_bus(LSL_SIGNALS);
+            
+            -- Decode instruction.
+            when add_op     => control_signals <= control_signal_bus(ADD_SIGNALS);
+            when sub_op     => control_signals <= control_signal_bus(SUB_SIGNALS);
+            when str_op     => control_signals <= control_signal_bus(STR_SIGNALS);
+            when ldr_op     => control_signals <= control_signal_bus(LDR_SIGNALS);
+            when and_op     => control_signals <= control_signal_bus(AND_SIGNALS);
+            when or_op      => control_signals <= control_signal_bus(OR_SIGNALS);
+            when not_op     => control_signals <= control_signal_bus(NOT_SIGNALS);
+            when cmp_op     => control_signals <= control_signal_bus(CMP_SIGNALS);
+            when br_op      => control_signals <= control_signal_bus(br_or);
+            when b_op       => control_signals <= control_signal_bus(b_or);
+            when bl_op      => control_signals <= control_signal_bus(bl_or);
+            when loadil_op  => control_signals <= control_signal_bus(LOADIL_SIGNALS);
+            when loadiu_op  => control_signals <= control_signal_bus(LOADIU_SIGNALS);
+            when addi_op    => control_signals <= control_signal_bus(ADDI_SIGNALS);
+            when lsr_op     => control_signals <= control_signal_bus(LSR_SIGNALS);
+            when lsl_op     => control_signals <= control_signal_bus(LSL_SIGNALS);
 
         end case;
 

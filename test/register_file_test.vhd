@@ -11,11 +11,11 @@ library work;
 use work.all;
 
 
-entity test_bench is 
-end test_bench;
+entity register_file_test_bench is 
+end register_file_test_bench;
 
 
-architecture test of test_bench is
+architecture test of register_file_test_bench is
 
     -- Register file parameters.
     constant N : integer := 8;   -- Number of register bits.
