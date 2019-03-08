@@ -76,7 +76,7 @@ begin
                 report "Addition failed."
                 severity FAILURE;
             
-            assert((zero_flag = '0') xor (zeros_compare = (zeros_compare or expected_output)))
+            assert((zero_flag = '0') xor (zeros_compare = expected_output))
                 report "Addition zero-check failed."
                 severity FAILURE;
             
@@ -91,7 +91,7 @@ begin
                 report "Subtraction failed."
                 severity FAILURE;
 
-            assert((zero_flag = '0') xor (zeros_compare = (zeros_compare or expected_output)))
+            assert((zero_flag = '0') xor (zeros_compare = expected_output))
                 report "Subtraction zero-check failed."
                 severity FAILURE;
             
@@ -107,7 +107,7 @@ begin
                 report "Logical AND failed."
                 severity FAILURE;
             
-            assert((zero_flag = '0') xor (zeros_compare = (zeros_compare or expected_output)))
+            assert((zero_flag = '0') xor (zeros_compare = expected_output))
                 report "AND zero-check failed."
                 severity FAILURE;
             
@@ -123,7 +123,7 @@ begin
                 report "Logical OR failed."
                 severity FAILURE;
             
-            assert((zero_flag = '0') xor (zeros_compare = (zeros_compare or expected_output)))
+            assert((zero_flag = '0') xor (zeros_compare = expected_output))
                 report "Or zero-check failed."
                 severity FAILURE;
             
@@ -138,7 +138,7 @@ begin
                 report "Logical NOT failed."
                 severity FAILURE;
             
-            assert((zero_flag = '0') xor (zeros_compare = (zeros_compare or expected_output)))
+            assert((zero_flag = '0') xor (zeros_compare = expected_output))
                 report "NOT zero-check failed."
                 severity FAILURE;
             
@@ -153,7 +153,7 @@ begin
                 report "Shift right failed."
                 severity FAILURE;
             
-            assert((zero_flag = '0') xor (zeros_compare = (zeros_compare or expected_output)))
+            assert((zero_flag = '0') xor (zeros_compare = expected_output))
                 report "Shift right zero-check failed."
                 severity FAILURE;
                 
@@ -168,7 +168,7 @@ begin
                 report "Shift left failed."
                 severity FAILURE;
             
-            assert((zero_flag = '0') xor (zeros_compare = (zeros_compare or expected_output)))
+            assert((zero_flag = '0') xor (zeros_compare = expected_output))
                 report "Shift left zero-check failed."
                 severity FAILURE;
             

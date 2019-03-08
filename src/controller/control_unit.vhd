@@ -33,13 +33,12 @@ package body control_unit_package is
 
     begin
 
-        output_bus.c_alu_op     := x(13 downto 11);
-        output_bus.c_compare    := x(10);
-        output_bus.c_i_type     := x(9);
-        output_bus.c_r_type     := x(8);
-        output_bus.c_load_imm   := x(7);
-        output_bus.c_upper_imm  := x(6);
-        output_bus.c_fetch      := x(5);
+        output_bus.c_alu_op     := x(12 downto 10);
+        output_bus.c_compare    := x(9);
+        output_bus.c_i_type     := x(8);
+        output_bus.c_r_type     := x(7);
+        output_bus.c_load_imm   := x(6);
+        output_bus.c_upper_imm  := x(5);
         output_bus.c_mem_read   := x(4);
         output_bus.c_mem_write  := x(3);
         output_bus.c_reg_write  := x(2);
@@ -58,13 +57,12 @@ package body control_unit_package is
         
     begin
         
-        output_vector(13 downto 11) := x.c_alu_op;
-        output_vector(10) := x.c_compare;
-        output_vector(9)  := x.c_i_type;
-        output_vector(8)  := x.c_r_type;
-        output_vector(7)  := x.c_load_imm;
-        output_vector(6)  := x.c_upper_imm;
-        output_vector(5)  := x.c_fetch;
+        output_vector(12 downto 10) := x.c_alu_op;
+        output_vector(9) := x.c_compare;
+        output_vector(8)  := x.c_i_type;
+        output_vector(7)  := x.c_r_type;
+        output_vector(6)  := x.c_load_imm;
+        output_vector(5)  := x.c_upper_imm;
         output_vector(4)  := x.c_mem_read;
         output_vector(3)  := x.c_mem_write;
         output_vector(2)  := x.c_reg_write;
@@ -107,26 +105,26 @@ end control_unit;
 architecture behavioral of control_unit is
 
     -- Number of control signals can change after updates to design.
-    constant num_control_signals : integer := 14;
+    constant num_control_signals : integer := 13;
     subtype control_constant_t is std_logic_vector((num_control_signals - 1) downto 0);
 
     -- This table is based on the tables created for the second project report.
-    constant ADD_SIGNALS    : control_constant_t := "00000000000100";
-    constant SUB_SIGNALS    : control_constant_t := "00100000000100";
-    constant STR_SIGNALS    : control_constant_t := "00000000001000";
-    constant LDR_SIGNALS    : control_constant_t := "00000000010100";
-    constant AND_SIGNALS    : control_constant_t := "01000000000100";
-    constant OR_SIGNALS     : control_constant_t := "01100000000100";
-    constant NOT_SIGNALS    : control_constant_t := "10000000000100";
-    constant CMP_SIGNALS    : control_constant_t := "00010000000000";
-    constant BR_SIGNALS     : control_constant_t := "00000100000000";
-    constant B_SIGNALS      : control_constant_t := "00000000000000";
-    constant BL_SIGNALS     : control_constant_t := "00000000000110";
-    constant LOADIL_SIGNALS : control_constant_t := "00000010000100";
-    constant LOADIU_SIGNALS : control_constant_t := "00000011000100";
-    constant ADDI_SIGNALS   : control_constant_t := "00001000000100";
-    constant LSR_SIGNALS    : control_constant_t := "10101000000100";
-    constant LSL_SIGNALS    : control_constant_t := "11001000000100";
+    constant ADD_SIGNALS    : control_constant_t := "0000000000100";
+    constant SUB_SIGNALS    : control_constant_t := "0010000000100";
+    constant STR_SIGNALS    : control_constant_t := "0000000001000";
+    constant LDR_SIGNALS    : control_constant_t := "0000000010100";
+    constant AND_SIGNALS    : control_constant_t := "0100000000100";
+    constant OR_SIGNALS     : control_constant_t := "0110000000100";
+    constant NOT_SIGNALS    : control_constant_t := "1000000000100";
+    constant CMP_SIGNALS    : control_constant_t := "0001000000000";
+    constant BR_SIGNALS     : control_constant_t := "0000010000000";
+    constant B_SIGNALS      : control_constant_t := "0000000000000";
+    constant BL_SIGNALS     : control_constant_t := "0000000000110";
+    constant LOADIL_SIGNALS : control_constant_t := "0000001000100";
+    constant LOADIU_SIGNALS : control_constant_t := "0000001100100";
+    constant ADDI_SIGNALS   : control_constant_t := "0000100000100";
+    constant LSR_SIGNALS    : control_constant_t := "1010100000100";
+    constant LSL_SIGNALS    : control_constant_t := "1100100000100";
 
 begin
 
@@ -134,25 +132,26 @@ begin
     
         -- Need to OR the constant patterns with branch taken signal based on input
         -- control signal ports.
-        variable branch_setter : std_logic_vector(13 downto 0) := (others => '0');
+        variable branch_setter : std_logic := '0';
     
         -- Need variables that store OR'd signals to preserve bit ordering.
-        variable br_or : std_logic_vector(13 downto 0);
-        variable b_or  : std_logic_vector(13 downto 0);
-        variable bl_or : std_logic_vector(13 downto 0);
+        variable br_or : std_logic_vector(12 downto 0) := BR_SIGNALS;
+        variable b_or  : std_logic_vector(12 downto 0) := B_SIGNALS;
+        variable bl_or : std_logic_vector(12 downto 0) := BL_SIGNALS;
     
     begin
 
         -- Set branch based on input condition from instruction and condition in PC.
         if (in_condition = pc_condition) then
-            branch_setter := "00000000000001";
+            branch_setter := '1';
         else
-            branch_setter := "00000000000000";
+            branch_setter := '0';
         end if;
 
-        br_or := BR_SIGNALS or branch_setter;
-        b_or  := B_SIGNALS  or branch_setter;
-        bl_or := BL_SIGNALS or branch_setter;
+        -- OR in the branch control signal.
+        br_or(0) := branch_setter;
+        b_or(0)  := branch_setter;
+        bl_or(0) := branch_setter;
     
         case op_code is
             

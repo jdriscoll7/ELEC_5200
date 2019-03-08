@@ -48,7 +48,6 @@ package types is
         c_r_type    : std_logic;
         c_load_imm  : std_logic;
         c_upper_imm : std_logic;
-        c_fetch     : std_logic;
         c_mem_read  : std_logic;
         c_mem_write : std_logic;
         c_reg_write : std_logic;

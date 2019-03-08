@@ -19,22 +19,22 @@ end controller_test_bench;
 architecture test of controller_test_bench is
 
     -- This table is based on the tables created for the second project report.
-    constant ADD_SIGNALS    : std_logic_vector(13 downto 0) := "00000000000100";
-    constant SUB_SIGNALS    : std_logic_vector(13 downto 0) := "00100000000100";
-    constant STR_SIGNALS    : std_logic_vector(13 downto 0) := "00000000001000";
-    constant LDR_SIGNALS    : std_logic_vector(13 downto 0) := "00000000010100";
-    constant AND_SIGNALS    : std_logic_vector(13 downto 0) := "01000000000100";
-    constant OR_SIGNALS     : std_logic_vector(13 downto 0) := "01100000000100";
-    constant NOT_SIGNALS    : std_logic_vector(13 downto 0) := "10000000000100";
-    constant CMP_SIGNALS    : std_logic_vector(13 downto 0) := "00010000000000";
-    constant BR_SIGNALS     : std_logic_vector(13 downto 0) := "00000100000001";
-    constant B_SIGNALS      : std_logic_vector(13 downto 0) := "00000000000001";
-    constant BL_SIGNALS     : std_logic_vector(13 downto 0) := "00000000000111";
-    constant LOADIL_SIGNALS : std_logic_vector(13 downto 0) := "00000010000100";
-    constant LOADIU_SIGNALS : std_logic_vector(13 downto 0) := "00000011000100";
-    constant ADDI_SIGNALS   : std_logic_vector(13 downto 0) := "00001000000100";
-    constant LSR_SIGNALS    : std_logic_vector(13 downto 0) := "10101000000100";
-    constant LSL_SIGNALS    : std_logic_vector(13 downto 0) := "11001000000100";
+    constant ADD_SIGNALS    : std_logic_vector(12 downto 0) := "0000000000100";
+    constant SUB_SIGNALS    : std_logic_vector(12 downto 0) := "0010000000100";
+    constant STR_SIGNALS    : std_logic_vector(12 downto 0) := "0000000001000";
+    constant LDR_SIGNALS    : std_logic_vector(12 downto 0) := "0000000010100";
+    constant AND_SIGNALS    : std_logic_vector(12 downto 0) := "0100000000100";
+    constant OR_SIGNALS     : std_logic_vector(12 downto 0) := "0110000000100";
+    constant NOT_SIGNALS    : std_logic_vector(12 downto 0) := "1000000000100";
+    constant CMP_SIGNALS    : std_logic_vector(12 downto 0) := "0001000000000";
+    constant BR_SIGNALS     : std_logic_vector(12 downto 0) := "0000010000000";
+    constant B_SIGNALS      : std_logic_vector(12 downto 0) := "0000000000000";
+    constant BL_SIGNALS     : std_logic_vector(12 downto 0) := "0000000000110";
+    constant LOADIL_SIGNALS : std_logic_vector(12 downto 0) := "0000001000100";
+    constant LOADIU_SIGNALS : std_logic_vector(12 downto 0) := "0000001100100";
+    constant ADDI_SIGNALS   : std_logic_vector(12 downto 0) := "0000100000100";
+    constant LSR_SIGNALS    : std_logic_vector(12 downto 0) := "1010100000100";
+    constant LSL_SIGNALS    : std_logic_vector(12 downto 0) := "1100100000100";
  
     -- Signals used for testing the control unit under test.
     signal test_op_code             : op_code_t     := add_op;
@@ -97,19 +97,19 @@ begin
                         
                             when br_op =>
                                 
-                                assert(BR_SIGNALS = (to_std_logic_vector(test_control_signals) or branch_taken))
+                                assert((BR_SIGNALS or branch_taken) = to_std_logic_vector(test_control_signals))
                                     report "br failed."
                                     severity FAILURE;
                                 
                             when b_op =>
                             
-                                assert(B_SIGNALS = (to_std_logic_vector(test_control_signals) or branch_taken))
+                                assert((B_SIGNALS or branch_taken) = to_std_logic_vector(test_control_signals))
                                     report "b failed."
                                     severity FAILURE;
                             
                             when bl_op =>
                         
-                                assert(BL_SIGNALS = (to_std_logic_vector(test_control_signals) or branch_taken))
+                                assert((BL_SIGNALS or branch_taken) = to_std_logic_vector(test_control_signals))
                                     report "bl failed."
                                     severity FAILURE;
                         
@@ -129,80 +129,80 @@ begin
                     when add_op     => 
                         
                         assert (to_std_logic_vector(test_control_signals) = ADD_SIGNALS)
-                        report "add failed"
-                        severity FAILURE;
+                            report "add failed"
+                            severity FAILURE;
                         
                     when sub_op     => 
                     
                         assert (to_std_logic_vector(test_control_signals) = SUB_SIGNALS)
-                        report "sub failed"
-                        severity FAILURE;
+                            report "sub failed"
+                            severity FAILURE;
                     
                     when str_op     => 
                     
                         assert (to_std_logic_vector(test_control_signals) = STR_SIGNALS)
-                        report "str failed"
-                        severity FAILURE;
+                            report "str failed"
+                            severity FAILURE;
                     
                     when ldr_op     => 
                     
                         assert (to_std_logic_vector(test_control_signals) = LDR_SIGNALS)
-                        report "ldr failed"
-                        severity FAILURE;
+                            report "ldr failed"
+                            severity FAILURE;
                     
                     when and_op     => 
                     
                         assert (to_std_logic_vector(test_control_signals) = AND_SIGNALS)
-                        report "and failed"
-                        severity FAILURE;
+                            report "and failed"
+                            severity FAILURE;
                     
                     when or_op      => 
                     
                         assert (to_std_logic_vector(test_control_signals) = OR_SIGNALS)
-                        report "or failed"
-                        severity FAILURE;
+                            report "or failed"
+                            severity FAILURE;
                     
                     when not_op     => 
                     
                         assert (to_std_logic_vector(test_control_signals) = NOT_SIGNALS)
-                        report "not failed"
-                        severity FAILURE;
+                            report "not failed"
+                            severity FAILURE;
                     
                     when cmp_op     => 
                     
                         assert (to_std_logic_vector(test_control_signals) = CMP_SIGNALS)
-                        report "cmp failed"
-                        severity FAILURE;
+                            report "cmp failed"
+                            severity FAILURE;
                     
                     when loadil_op  => 
                     
                         assert (to_std_logic_vector(test_control_signals) = LOADIL_SIGNALS)
-                        report "loadil failed"
-                        severity FAILURE;
+                            report "loadil failed"
+                            severity FAILURE;
                     
                     when loadiu_op  => 
                     
                         assert (to_std_logic_vector(test_control_signals) = LOADIU_SIGNALS)
-                        report "loadiu failed"
-                        severity FAILURE;
+                            report "loadiu failed"
+                            severity FAILURE;
                     
                     when addi_op    => 
                     
                         assert (to_std_logic_vector(test_control_signals) = ADDI_SIGNALS)
-                        report "addi failed"
-                        severity FAILURE;
+                            report "addi failed"
+                            severity FAILURE;
                     
                     when lsr_op     => 
                     
                         assert (to_std_logic_vector(test_control_signals) = LSR_SIGNALS)
-                        report "lsr failed"
-                        severity FAILURE;
+                            report "lsr failed"
+                            severity FAILURE;
                     
                     when lsl_op     => 
                     
                         assert (to_std_logic_vector(test_control_signals) = LSL_SIGNALS)
-                        report "lsl failed"
-                        severity FAILURE;
+                            report "lsl failed"
+                            severity FAILURE;
                 
                 end case;
             
