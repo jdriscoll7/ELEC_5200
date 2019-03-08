@@ -11,7 +11,7 @@ use ieee.numeric_std.all;
 -- Register interface.
 entity generic_register is
 
-    generic (N : integer := 8);
+    generic (N : integer := 16);
                  
     port    (data_in        : in  std_logic_vector((N - 1) downto 0);
              data_out       : out std_logic_vector((N - 1) downto 0);
