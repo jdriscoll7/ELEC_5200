@@ -92,10 +92,7 @@ begin
             -- Read from the ports (port 1 goes from low address to high address).
             r_addr_1 <= std_logic_vector(to_unsigned(reg_num, M));
             r_addr_2 <= std_logic_vector(to_unsigned(((2**M) - 1) - reg_num, M));
-            
-            -- Set write address to reg_num.
-            w_addr <= std_logic_vector(to_unsigned(reg_num, M));
-            
+
             -- Wait for everything to settle and turn off write enable.
             wait for 25 ns;
         
