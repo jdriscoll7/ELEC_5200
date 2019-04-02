@@ -17,7 +17,7 @@ use ieee.numeric_std.all;
 --
 entity register_file is
 
-    generic (REGISTER_SIZE  : integer := 8;
+    generic (REGISTER_SIZE  : integer := 16;
              ADDRESS_BITS   : integer := 4);
              
     port    (read_address_1 : in  std_logic_vector((ADDRESS_BITS - 1)  downto 0);
