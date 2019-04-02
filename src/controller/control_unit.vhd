@@ -106,7 +106,7 @@ architecture behavioral of control_unit is
 
     -- Number of control signals can change after updates to design.
     constant num_control_signals : integer := 13;
-    subtype control_constant_t is std_logic_vector((num_control_signals - 1) downto 0);
+    subtype  control_constant_t is std_logic_vector((num_control_signals - 1) downto 0);
 
     -- This table is based on the tables created for the second project report.
     constant ADD_SIGNALS    : control_constant_t := "0000000000100";
