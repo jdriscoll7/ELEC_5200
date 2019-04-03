@@ -26,9 +26,10 @@ architecture behavioral of top_level is
     signal control_signals  : control_signal_bus_t;
     
     -- PC-related signals.
-    signal pc_input         : std_logic_vector(15 downto 0);
-    signal pc_condition     : condition_t;
-    signal pc_pointer       : std_logic_vector(9 downto 0);
+    signal pc_condition_in     : condition_t;
+    signal pc_condition_out    : condition_t;
+    signal pc_pointer_in       : std_logic_vector(9 downto 0);
+    signal pc_pointer_out      : std_logic_vector(9 downto 0);
     
     -- Register file related signals.
     signal file_data_in     : std_logic_vector(15 downto 0);
@@ -133,7 +134,7 @@ begin
         -- Determine PC value input.
         if (control_signals.c_branch = '0') then
         
-            
+            pc
         
         else
         
@@ -198,6 +199,12 @@ begin
         
         -- Determine second ALU input.
         if (control_signals.c_i_type = '0') then
+        
+        
+        
+        
+        else
+        
         
         
         
