@@ -10,8 +10,11 @@ use work.all;
 
 entity top_level is
     
-    port (instruction   : in  std_logic_vector(15 downto 0);    -- Instruction (absence of instruction memory).
-          clock         : in  std_logic);                       -- System clock.
+    port (read_data_bus     : in  std_logic_vector(15 downto 0);
+          write_data_bus    : out std_logic_vector(15 downto 0);
+          address_bus       : out std_logic_vector(15 downto 0);
+          instruction       : in  std_logic_vector(15 downto 0);
+          clock             : in  std_logic);                   
     
 end top_level;
 
@@ -134,15 +137,17 @@ begin
         -- Determine PC value input.
         if (control_signals.c_branch = '0') then
         
-            pc
-        
+            pc_pointer_in <= std_logic_vector(to_unsigned(to_integer(unsigned(pc_pointer_out)) + 1, pc_pointer_in'length));
+            
         else
         
             if (control_signals.c_r_type = '0') then
             
+                pc_pointer_in <= branch_address;
             
             else
             
+                pc_pointer_in <= file_out_1;
             
             end if;
         
@@ -152,11 +157,11 @@ begin
         -- Determine PC condition input.
         if (control_signals.c_cmp = '0') then
         
-            
+            pc_condition_in <= pc_condition_out;
         
         else
         
-            
+            pc_condition_in <= alu_out(15) & alu_zero_flag;
         
         end if;
         
@@ -164,7 +169,11 @@ begin
         -- Determine register file write address.
         if (control_signals.c_link = '0') then
         
-            
+            file_addr_in <= rd;
+        
+        else
+        
+            file_addr_in <= "1111";
         
         end if;
         
@@ -174,11 +183,11 @@ begin
         
             if (control_signals.c_mem_read = '0') then
                 
-                
+                file_data_in <= alu_out;
                 
             else
                 
-                
+                file_data_in <= ;
                 
             end if;
         
