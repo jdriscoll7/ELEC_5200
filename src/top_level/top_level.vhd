@@ -5,6 +5,7 @@ use work.types.all;
 
 library work;
 use work.all;
+use work.instruction_memory;
 
 
 entity top_level is
@@ -14,7 +15,7 @@ entity top_level is
           read_data_bus         : in  std_logic_vector(15 downto 0);
           write_data_bus        : out std_logic_vector(15 downto 0);
           address_bus           : out std_logic_vector(15 downto 0);
-          instruction           : in  std_logic_vector(15 downto 0);
+          memory_write_enable   : out std_logic;
           clock                 : in  std_logic);                   
     
 end top_level;
@@ -112,6 +113,12 @@ begin
                   data_out      => pc_output,
                   write_enable  => '1',
                   clock         => clock);
+    
+    
+    -- Instruction memory instantiation.
+    instruction_memory : entity work.instruction_memory
+        port map (read_address  => pc_pointer_out, 
+                  data_out      => instr_raw);
     
     
     ---------------------------
@@ -238,9 +245,15 @@ begin
     -------------------------
     -- Signal assignments. --
     -------------------------
-    instr_raw <= instruction;
+    
+    -- Instruction decoding related.
     c_alu_op  <= to_alu_op_t(control_signals.c_alu_op);
+    
+    -- PC register related.
     pc_input(15 downto 6) <= pc_pointer_in;
     pc_input(1 downto 0)  <= std_logic_vector(to_unsigned(condition_t'pos(pc_condition_in), 2));
+    
+    -- Data memory related.
+    memory_write_enable <= control_signals.c_mem_write;
 
 end behavioral;

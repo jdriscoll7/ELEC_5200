@@ -39,8 +39,8 @@ begin
     UUT : entity work.alu
     
         port map (alu_op    => alu_op,
-                  alu_in1   => alu_in1,
-                  alu_in2   => alu_in2,
+                  alu_in_1   => alu_in1,
+                  alu_in_2   => alu_in2,
                   alu_out   => alu_out,
                   zero_flag => zero_flag);
 
