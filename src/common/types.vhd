@@ -5,10 +5,11 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 
 package types is
-
+    
     -- Op code enumeration.
     type op_code_t is (add_op,
                        sub_op,
@@ -57,5 +58,52 @@ package types is
         c_branch    : std_logic;
         size        : integer;
     end record control_signal_bus_t;
-                      
+        
+    -- Casting functions for custom types.
+    function to_op_code_t(code : in std_logic_vector) return op_code_t;
+    function to_alu_op_t(code : in std_logic_vector) return alu_op_t;
+    function to_condition_t(code : in std_logic_vector) return condition_t;
+        
 end types;
+
+
+package body types is
+
+
+    function to_op_code_t(code : in std_logic_vector) return op_code_t is
+    begin
+    
+        return op_code_t'val(to_integer(unsigned(code)));    
+    
+    end function to_op_code_t;
+    
+    
+    function to_alu_op_t(code : in std_logic_vector) return alu_op_t is
+    begin
+    
+        return alu_op_t'val(to_integer(unsigned(code)));
+    
+    end function to_alu_op_t;
+
+    
+    function to_condition_t(code : in std_logic_vector) return condition_t is
+    begin
+    
+        return condition_t'val(to_integer(unsigned(code)));
+    
+    end function to_condition_t;
+    
+end package body types;
+
+
+
+
+
+
+
+
+
+
+
+
+

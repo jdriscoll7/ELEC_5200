@@ -43,10 +43,10 @@ architecture behavioral of register_file is
 begin
 
     -- Handle register writes.
-    process(write_enable)
+    process(write_enable, data_in)
     begin
         
-        if rising_edge(write_enable) then
+        if (write_enable = '1') then
         
             register_file_storage(to_integer(unsigned(write_address))) <= data_in;
             

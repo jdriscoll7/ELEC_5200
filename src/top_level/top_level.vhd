@@ -1,20 +1,21 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
+use work.types.all;
 
 library work;
-use work.types.all;
 use work.all;
 
 
 entity top_level is
     
-    port (read_data_bus     : in  std_logic_vector(15 downto 0);
-          write_data_bus    : out std_logic_vector(15 downto 0);
-          address_bus       : out std_logic_vector(15 downto 0);
-          instruction       : in  std_logic_vector(15 downto 0);
-          clock             : in  std_logic);                   
+    port (debug_register_addr   : in  std_logic_vector(3 downto 0);
+          debug_register_data   : out std_logic_vector(15 downto 0);  
+          read_data_bus         : in  std_logic_vector(15 downto 0);
+          write_data_bus        : out std_logic_vector(15 downto 0);
+          address_bus           : out std_logic_vector(15 downto 0);
+          instruction           : in  std_logic_vector(15 downto 0);
+          clock                 : in  std_logic);                   
     
 end top_level;
 
@@ -27,12 +28,15 @@ architecture behavioral of top_level is
     
     -- Internal state of control signals.
     signal control_signals  : control_signal_bus_t;
+    signal c_alu_op         : alu_op_t;
     
     -- PC-related signals.
     signal pc_condition_in     : condition_t;
     signal pc_condition_out    : condition_t;
     signal pc_pointer_in       : std_logic_vector(9 downto 0);
     signal pc_pointer_out      : std_logic_vector(9 downto 0);
+    signal pc_input            : std_logic_vector(15 downto 0);
+    signal pc_output           : std_logic_vector(15 downto 0);
     
     -- Register file related signals.
     signal file_data_in     : std_logic_vector(15 downto 0);
@@ -41,11 +45,10 @@ architecture behavioral of top_level is
     signal file_out_2       : std_logic_vector(15 downto 0);
     
     -- ALU related signals.
-    signal alu_in_1         : std_logic_vector(15 downto 0):
-    signal alu_in_2         : std_logic_vector(15 downto 0):
-    signal alu_out          : std_logic_vector(15 downto 0):
+    signal alu_in_1         : std_logic_vector(15 downto 0);
+    signal alu_in_2         : std_logic_vector(15 downto 0);
+    signal alu_out          : std_logic_vector(15 downto 0);
     signal alu_zero_flag    : std_logic;
-    
     
     --------------------------------------------
     -- Signals used for instruction decoding. --
@@ -56,7 +59,7 @@ architecture behavioral of top_level is
     signal rd, rs1, rs2             : std_logic_vector(3 downto 0);
     signal small_constant_operand   : std_logic_vector(3 downto 0);
     signal large_constant_operand   : std_logic_vector(7 downto 0);
-    signal branch_address           : std_logic_vector(9 downto 0)
+    signal branch_address           : std_logic_vector(9 downto 0);
     
 begin
 
@@ -65,40 +68,50 @@ begin
     ----------------------------
     
     -- Controller instantiation.
-    entity control_unit : work.control_unit
-        port map (op_code           => current_op_code;
-                  in_condition      => instr_condition;
-                  pc_condition      => pc_condition;
-                  clock             => clock;
+    control_unit : entity work.control_unit
+        port map (op_code           => instr_op_code,
+                  in_condition      => instr_condition,
+                  pc_condition      => instr_condition,
+                  clock             => clock,
                   control_signals   => control_signals);
 
         
     -- Register file instantiation.
-    entity register_file : work.register_file
-        port map (read_address_1 => rs1;
-                  read_address_2 => rs2;
-                  write_address  => file_addr_in;
-                  data_in        => register_file_data_in;
-                  write_enable   => control_signals.c_reg_write;
-                  data_out_1     => file_out_1;
+    register_file : entity work.register_file
+        port map (read_address_1 => rs1,
+                  read_address_2 => rs2,
+                  write_address  => file_addr_in,
+                  data_in        => file_data_in,
+                  write_enable   => control_signals.c_reg_write,
+                  data_out_1     => file_out_1,
                   data_out_2     => file_out_2);
+                  
+    -- Second register file that mimics true file for debugging.
+    register_file_debug : entity work.register_file
+        port map (read_address_1 => debug_register_addr,
+                  read_address_2 => debug_register_addr,
+                  write_address  => file_addr_in,
+                  data_in        => file_data_in,
+                  write_enable   => control_signals.c_reg_write,
+                  data_out_1     => debug_register_data,
+                  data_out_2     => debug_register_data);
         
         
     -- ALU instantiation.
-    entity alu : work.alu
-        port map (alu_op    => control_signals.c_alu_op;
-                  alu_in_1  => alu_in_1;
-                  alu_in_2  => alu_in_2;
-                  alu_out   => alu_out;
+    alu : entity work.alu
+        port map (alu_op    => c_alu_op,
+                  alu_in_1  => alu_in_1,
+                  alu_in_2  => alu_in_2,
+                  alu_out   => alu_out,
                   zero_flag => alu_zero_flag);
         
         
     -- PC instantiation.
-    entity pc : work.generic_register
-        port map (data_in       => pc_input;
-                  data_out      => pc_output;
-                  write_enable  => '1';
-                  clock         => clock;);
+    pc : entity work.generic_register
+        port map (data_in       => pc_input, 
+                  data_out      => pc_output,
+                  write_enable  => '1',
+                  clock         => clock);
     
     
     ---------------------------
@@ -108,7 +121,7 @@ begin
     begin
     
         -- Extract op code from instruction.
-        instr_op_code <= instr_raw(3 downto 0);
+        instr_op_code <= to_op_code_t(instr_raw(3 downto 0));
         
         -- Extract rd, rs1, rs2.
         rd  <= instr_raw(15 downto 12);
@@ -119,11 +132,11 @@ begin
         branch_address <= instr_raw(15 downto 6);
         
         -- Extract branch condition.
-        instr_condition <= instr_raw(5 downto 4);
+        instr_condition <= to_condition_t(instr_raw(5 downto 4));
         
         -- Extract large and small constants.
-        large_constant_operand <= instr_raw(7 downto 4);
-        small_constant_operand <= instr_raw(11 downto 4);
+        large_constant_operand <= instr_raw(11 downto 4);
+        small_constant_operand <= instr_raw(7 downto 4);
     
     end process;
     
@@ -131,7 +144,7 @@ begin
     ---------------------------------------
     -- Controller datapath multiplexing. --
     ---------------------------------------
-    process(control_signals)
+    process(clock)
     begin
     
         -- Determine PC value input.
@@ -147,7 +160,7 @@ begin
             
             else
             
-                pc_pointer_in <= file_out_1;
+                pc_pointer_in <= file_out_1(9 downto 0);
             
             end if;
         
@@ -155,13 +168,13 @@ begin
         
         
         -- Determine PC condition input.
-        if (control_signals.c_cmp = '0') then
+        if (control_signals.c_compare = '0') then
         
             pc_condition_in <= pc_condition_out;
         
         else
         
-            pc_condition_in <= alu_out(15) & alu_zero_flag;
+            pc_condition_in <= to_condition_t(alu_out(15) & alu_zero_flag);
         
         end if;
         
@@ -187,7 +200,7 @@ begin
                 
             else
                 
-                file_data_in <= ;
+                file_data_in <= read_data_bus;
                 
             end if;
         
@@ -195,11 +208,11 @@ begin
         
             if (control_signals.c_upper_imm = '0') then
                 
-                
+                file_data_in <= "00000000" & large_constant_operand;
                 
             else
                 
-                
+                file_data_in <= large_constant_operand & "00000000";
                 
             end if;
         
@@ -209,13 +222,12 @@ begin
         -- Determine second ALU input.
         if (control_signals.c_i_type = '0') then
         
-        
-        
+            alu_in_2 <= file_out_2;
         
         else
         
-        
-        
+            alu_in_2(15 downto 0) <= (others => small_constant_operand(3)); 
+            alu_in_2(3 downto 0)  <= small_constant_operand;
         
         end if;
         
@@ -227,6 +239,8 @@ begin
     -- Signal assignments. --
     -------------------------
     instr_raw <= instruction;
-
+    c_alu_op  <= to_alu_op_t(control_signals.c_alu_op);
+    pc_input(15 downto 6) <= pc_pointer_in;
+    pc_input(1 downto 0)  <= std_logic_vector(to_unsigned(condition_t'pos(pc_condition_in), 2));
 
 end behavioral;
