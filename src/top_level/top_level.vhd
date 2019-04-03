@@ -3,6 +3,33 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.types.all;
 
+
+package datapath_types is
+
+    -- Used for the data memory signals.
+    type memory_input_bus_t is record
+        instruction_read_bus    : std_logic_vector(15 downto 0);
+        data_read_bus           : std_logic_vector(15 downto 0);
+    end record memory_input_bus_t;
+    
+    -- Used for the instruction memory signals.
+    type memory_output_bus_t is record
+        instruction_address_bus : std_logic_vector(9 downto 0);
+        data_address_bus        : std_logic_vector(15 downto 0);
+        data_write_bus          : std_logic_vector(15 downto 0);
+        data_write_enable       : std_logic;
+    end record memory_output_bus_t;
+    
+end package datapath_types;
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.types.all;
+use work.datapath_types.all;
+
+
 library work;
 use work.all;
 use work.instruction_memory;
@@ -10,13 +37,11 @@ use work.instruction_memory;
 
 entity top_level is
     
-    port (debug_register_addr   : in  std_logic_vector(3 downto 0);
-          debug_register_data   : out std_logic_vector(15 downto 0);  
-          read_data_bus         : in  std_logic_vector(15 downto 0);
-          write_data_bus        : out std_logic_vector(15 downto 0);
-          address_bus           : out std_logic_vector(15 downto 0);
-          memory_write_enable   : out std_logic;
-          clock                 : in  std_logic);                   
+    port (debug_register_address    : in  std_logic_vector(3 downto 0);  
+          debug_register_data       : out std_logic_vector(15 downto 0);
+          memory_input_bus          : in  memory_input_bus_t;
+          memory_output_bus         : out memory_output_bus_t;
+          clock                     : in  std_logic);
     
 end top_level;
 
@@ -89,8 +114,8 @@ begin
                   
     -- Second register file that mimics true file for debugging.
     register_file_debug : entity work.register_file
-        port map (read_address_1 => debug_register_addr,
-                  read_address_2 => debug_register_addr,
+        port map (read_address_1 => debug_register_address,
+                  read_address_2 => debug_register_address,
                   write_address  => file_addr_in,
                   data_in        => file_data_in,
                   write_enable   => control_signals.c_reg_write,
@@ -113,12 +138,6 @@ begin
                   data_out      => pc_output,
                   write_enable  => '1',
                   clock         => clock);
-    
-    
-    -- Instruction memory instantiation.
-    instruction_memory : entity work.instruction_memory
-        port map (read_address  => pc_pointer_out, 
-                  data_out      => instr_raw);
     
     
     ---------------------------
@@ -207,7 +226,7 @@ begin
                 
             else
                 
-                file_data_in <= read_data_bus;
+                file_data_in <= memory_input_bus.data_read_bus;
                 
             end if;
         
@@ -252,8 +271,12 @@ begin
     -- PC register related.
     pc_input(15 downto 6) <= pc_pointer_in;
     pc_input(1 downto 0)  <= std_logic_vector(to_unsigned(condition_t'pos(pc_condition_in), 2));
+    memory_output_bus.instruction_address_bus <= pc_pointer_out;
     
     -- Data memory related.
-    memory_write_enable <= control_signals.c_mem_write;
-
+    memory_output_bus.data_write_enable <= control_signals.c_mem_write;
+    
+    -- Instruction memory related.
+    instr_raw <= memory_input_bus.instruction_read_bus;
+    
 end behavioral;
