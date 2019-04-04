@@ -34,17 +34,21 @@ begin
     UUT : entity work.top_level
         port map (debug_register_address                        => debug_register_addr,
                   debug_register_data                           => debug_register_data,
-                  memory_input_bus.data_read_bus               => read_data_bus,
-                  memory_input_bus.instruction_read_bus        => instruction,
-                  memory_output_bus.data_write_bus             => write_data_bus,
-                  memory_output_bus.data_address_bus           => address_bus,
-                  memory_output_bus.data_write_enable          => data_memory_write_enable,
-                  memory_output_bus.instruction_address_bus    => pc_pointer,
+                  memory_input_bus.data_read_bus                => read_data_bus,
+                  memory_input_bus.instruction_read_bus         => instruction,
+                  memory_output_bus.data_write_bus              => write_data_bus,
+                  memory_output_bus.data_address_bus            => address_bus,
+                  memory_output_bus.data_write_enable           => data_memory_write_enable,
+                  memory_output_bus.instruction_address_bus     => pc_pointer,
                   clock                                         => clock);
                 
     process
         variable reg_num : std_logic_vector(3 downto 0);
     begin
+  
+        ---------------------------------------
+        -- Test immediate load instructions. --
+        ---------------------------------------
   
         -- Test loadil.
         for i in 0 to 15 loop
@@ -55,14 +59,13 @@ begin
           
             -- loadil reg_num, reg_num
             instruction <=  reg_num & "0000" & reg_num & "1011"; 
-            wait for 200 ns;
+            wait for 100 ns;
           
             assert(debug_register_data = ("000000000000" & reg_num))
                 report "loadil instruction failed."
                 severity FAILURE;
           
         end loop;
-      
       
         -- Test loadiu.
         for i in 0 to 15 loop
@@ -80,29 +83,69 @@ begin
                 severity FAILURE;
           
         end loop;
-            
-      
-        instruction <= "0001111011101011"; wait for 100 ns;   -- loadil r1, 0xEE
-        instruction <= "0010110111011011"; wait for 100 ns;   -- loadil r2, 0xDD
-        instruction <= "0011110011001011"; wait for 100 ns;   -- loadil r3, 0xCC
-        instruction <= "0100101110111011"; wait for 100 ns;   -- loadil r4, 0xBB
-      
+    
+    
+        ---------------------------------------
+        -- Test all arithmetic instructions. --
+        ---------------------------------------
+        
+        -- Test add.
+        
+        
+        -- Test sub.
+        
+        
+        -- Test and.
+        
+        
+        -- Test or.
+        
+        
+        -- Test not.
+        
+        
+        -- Test lsr.
+        
+        
+        -- Test lsl.
+        
+        
+        -- Test addi.
+        
+        
+        
+        
+        --------------------------------------------------
+        -- Test all branch and comparison instructions. --
+        --------------------------------------------------
+    
+        -- Test cmp.
+        
+        
+        -- Test br (with all conditions).
+        
+        
+        -- Test b (with all conditions).
+        
+        
+        -- Test bl (with all conditions)
+        
+        
+        
+        
+        ---------------------------------------------
+        -- Test data memory instructions (partly). --
+        ---------------------------------------------
+        
+        -- Test ldr.
+        
+        
+        -- Test str.
+    
+    
+    
+    
         wait for 100 ns; wait;
-      
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
---        instruction <= ""; wait for 1 ns;
-
     
     end process;
                   
