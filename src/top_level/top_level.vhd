@@ -207,18 +207,6 @@ begin
         end if;
         
         
-        -- Determine register file write address.
-        if (control_signals.c_link = '0') then
-        
-            file_addr_in <= rd;
-        
-        else
-        
-            file_addr_in <= "1111";
-        
-        end if;
-        
-        
         -- Determine register file write data.
         if (control_signals.c_load_imm = '0') then
         
@@ -266,6 +254,19 @@ begin
             
             end if;
             
+        end if;    
+                
+        
+        -- Determine register file write address.
+        if (control_signals.c_link = '0') then
+        
+            file_addr_in <= rd;
+        
+        else
+        
+            file_addr_in <= "1111";
+            file_data_in <= pc_pointer_out & "0000" & pc_condition_out;
+        
         end if;
         
         

@@ -513,10 +513,195 @@ begin
         
         
         -- Test b.   (address(10) cond(2))
+        -- For each of the four compare results, branch to address 0x345 and check PC.
+        for i in 0 to 15 loop
+        
+            for instruction_condition in 0 to 3 loop
+            
+                -- Store current condition being tested.
+                cond_num := std_logic_vector(to_unsigned(instruction_condition, 2));
+            
+                -- Store PC to test that instruction correctly affects PC change.
+                pre_instruction_pc := pc_pointer;
+                
+                -- Compare two registers that are equal (compare r1 to r1).
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0001");           wait for 100 ns;
+                instruction <= form_machine_code(b_op, "11", "01000101" & cond_num);        wait for 100 ns;
+                
+                -- Test for branch equal to correctness.
+                if (cond_num = "01" or cond_num = "00") then
+                
+                    -- See if branch took place.
+                    assert(pc_pointer = "1101000101")
+                        report "beq instruction failed."
+                        severity FAILURE;
+                
+                else 
+                
+                    -- If branch didn't take place, PC should be incremented by one.
+                    assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
+                        report "beq instruction failed."
+                        severity FAILURE;
+                
+                end if;
+                
+                
+                -- Store PC to test that instruction correctly affects PC change.
+                pre_instruction_pc := pc_pointer;
+                
+                -- Compare two registers, where the first is greater than the second (compare r1 to r0).
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0010");           wait for 100 ns;
+                instruction <= form_machine_code(b_op, "11", "01000101" & cond_num);        wait for 100 ns;
+                
+                -- Test for less than correctness.
+                if (cond_num = "10" or cond_num = "00") then
+                
+                    -- See if branch took place.
+                    assert(pc_pointer = "1101000101")
+                        report "blt instruction failed."
+                        severity FAILURE;
+                
+                else 
+                
+                    -- If branch didn't take place, PC should be incremented by one.
+                    assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
+                        report "blt instruction failed."
+                        severity FAILURE;
+                
+                end if;
+                
+                
+                -- Store PC to test that instruction correctly affects PC change.
+                pre_instruction_pc := pc_pointer;
+                
+                -- Compare two registers, where the second is greater than the first (compare r1 to r2).
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0000");       wait for 100 ns;
+                instruction <= form_machine_code(b_op, "11", "01000101" & cond_num);    wait for 100 ns;
+                
+                -- Test for greater than correctness.
+                if (cond_num = "11" or cond_num = "00") then
+                
+                    -- See if branch took place.
+                    assert(pc_pointer = "1101000101")
+                        report "bgt instruction failed."
+                        severity FAILURE;
+                
+                else 
+                
+                    -- If branch didn't take place, PC should be incremented by one.
+                    assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
+                        report "bgt instruction failed."
+                        severity FAILURE;
+                
+                end if;
+
+            end loop;
+                    
+        end loop;
         
         
         -- Test bl.  (address(10) cond(2))
+        -- For each of the four compare results, branch to address 0x345, check PC, and check LR.
+        debug_register_addr <= "1111";
+        for i in 0 to 15 loop
         
+            for instruction_condition in 0 to 3 loop
+            
+                -- Store current condition being tested.
+                cond_num := std_logic_vector(to_unsigned(instruction_condition, 2));
+            
+                -- Store PC to test that instruction correctly affects PC change.
+                pre_instruction_pc := pc_pointer;
+                
+                -- Compare two registers that are equal (compare r1 to r1).
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0001");           wait for 100 ns;
+                instruction <= form_machine_code(bl_op, "11", "01000101" & cond_num);        wait for 100 ns;
+                
+                -- Test for branch equal to correctness.
+                if (cond_num = "01" or cond_num = "00") then
+                
+                    -- See if branch took place.
+                    assert(pc_pointer = "1101000101")
+                        report "bleq instruction failed."
+                        severity FAILURE;
+                        
+                    -- If branch was taken, make sure link register stored last PC.
+                    assert(debug_register_data(15 downto 6) = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                        report "Link register not saved."
+                        severity FAILURE;
+                
+                else 
+                
+                    -- If branch didn't take place, PC should be incremented by one.
+                    assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
+                        report "bleq instruction failed."
+                        severity FAILURE;
+                    
+                end if;
+                
+                
+                -- Store PC to test that instruction correctly affects PC change.
+                pre_instruction_pc := pc_pointer;
+                
+                -- Compare two registers, where the first is greater than the second (compare r1 to r0).
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0010");           wait for 100 ns;
+                instruction <= form_machine_code(bl_op, "11", "01000101" & cond_num);        wait for 100 ns;
+                
+                -- Test for less than correctness.
+                if (cond_num = "10" or cond_num = "00") then
+                
+                    -- See if branch took place.
+                    assert(pc_pointer = "1101000101")
+                        report "bllt instruction failed."
+                        severity FAILURE;
+                        
+                    -- If branch was taken, make sure link register stored last PC.
+                    assert(debug_register_data(15 downto 6) = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                        report "Link register not saved."
+                        severity FAILURE;
+                
+                else 
+                
+                    -- If branch didn't take place, PC should be incremented by one.
+                    assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
+                        report "bllt instruction failed."
+                        severity FAILURE;
+                
+                end if;
+                
+                
+                -- Store PC to test that instruction correctly affects PC change.
+                pre_instruction_pc := pc_pointer;
+                
+                -- Compare two registers, where the second is greater than the first (compare r1 to r2).
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0000");       wait for 100 ns;
+                instruction <= form_machine_code(bl_op, "11", "01000101" & cond_num);    wait for 100 ns;
+                
+                -- Test for greater than correctness.
+                if (cond_num = "11" or cond_num = "00") then
+                
+                    -- See if branch took place.
+                    assert(pc_pointer = "1101000101")
+                        report "blgt instruction failed."
+                        severity FAILURE;
+                        
+                    -- If branch was taken, make sure link register stored last PC.
+                    assert(debug_register_data(15 downto 6) = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                        report "Link register not saved."
+                        severity FAILURE;
+                
+                else 
+                
+                    -- If branch didn't take place, PC should be incremented by one.
+                    assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
+                        report "blgt instruction failed."
+                        severity FAILURE;
+                
+                end if;
+
+            end loop;
+                    
+        end loop;
         
         
         
