@@ -450,7 +450,7 @@ begin
                 
                     -- If branch didn't take place, PC should be incremented by one.
                     assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
-                        report "br instruction failed."
+                        report "breq instruction failed."
                         severity FAILURE;
                 
                 end if;
@@ -475,7 +475,7 @@ begin
                 
                     -- If branch didn't take place, PC should be incremented by one.
                     assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
-                        report "br instruction failed."
+                        report "brlt instruction failed."
                         severity FAILURE;
                 
                 end if;
@@ -493,14 +493,14 @@ begin
                 
                     -- See if branch took place.
                     assert(pc_pointer = "0000000000000101")
-                        report "brlt instruction failed."
+                        report "brgt instruction failed."
                         severity FAILURE;
                 
                 else 
                 
                     -- If branch didn't take place, PC should be incremented by one.
                     assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
-                        report "br instruction failed."
+                        report "brgt instruction failed."
                         severity FAILURE;
                 
                 end if;
@@ -523,12 +523,73 @@ begin
         ---------------------------------------------
         
         -- Test ldr. (rd(4) rs1(4) rs2(4))
+        -- Load in the simulated value 0xBEEF from memory locations matching the register number.
+        --
+        -- Since there is no memory, the read data bus is driven and the data address bus is checked
+        -- for correctness.
+        for i in 0 to 15 loop
+        
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
+        
+            -- Convert i to std_logic_vector and setup comparison value.
+            reg_num             := std_logic_vector(to_unsigned(i, 4));
+            compare_value       := "1011111011101111";
+            debug_register_addr <= reg_num;
+
+            -- ldr reg_num, reg_num, r0
+            instruction     <= form_machine_code(ldr_op, reg_num, reg_num, "0000");
+            read_data_bus   <= compare_value;
+            wait for 100 ns;
+            
+            -- Check that the datapath is requesting data from correct memory location.
+            assert(address_bus = reg_num)
+                report "ldr instruction failed (incorrect data memory address)."
+                severity FAILURE;
+            
+            -- Check that the datapath is stored the data from memory correctly.
+            assert(debug_register_data = compare_value)
+                report "ldr instruction failed (incorrect data memory obtained)."
+                severity FAILURE;
+          
+        end loop;
         
         
         -- Test str. (rd(4) rs1(4) rs2(4))
-    
-    
-    
+        -- Store the value of each register into memory locations matching the register number.
+        --
+        -- Since there is no memory, the data address bus, data write bus, and data write enable  
+        -- are checked for correctness.
+        for i in 0 to 15 loop
+        
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
+        
+            -- Convert i to std_logic_vector and setup comparison value.
+            reg_num             := std_logic_vector(to_unsigned(i, 4));
+            compare_value       := "1011111011101111";
+            debug_register_addr <= reg_num;
+
+            -- str reg_num, reg_num, r0
+            instruction     <= form_machine_code(str_op, reg_num, reg_num, "0000");
+            wait for 100 ns;
+            
+            -- Check that the datapath is enabling write enable.
+            assert(data_memory_write_enable = '1')
+                report "str instruction failed (write enable not turned on)."
+                severity FAILURE;
+            
+            -- Check that the datapath is putting correct data on write bus.
+            assert(data_write_bus = reg_num)
+                report "str instruction failed (incorrect data put on write bus)."
+                severity FAILURE;
+            
+            -- Check that the datapath is writing to the correct address.
+            assert(address_bus = reg_num)
+                report "str instruction failed (incorrect data memory address)."
+                severity FAILURE;
+          
+        end loop;
     
         wait for 100 ns; wait;
     
