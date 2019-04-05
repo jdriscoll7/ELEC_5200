@@ -393,9 +393,9 @@ begin
                 severity FAILURE;
         
         
-        --------------------------------------------------
+        ----------------------------------------------------
         -- Test all branch (and comparison) instructions. --
-        --------------------------------------------------
+        ----------------------------------------------------
     
         -- Test br.  (rd(4) unused(6) cond(2))
         -- For each of the four compare results, branch to r5 and check PC.
