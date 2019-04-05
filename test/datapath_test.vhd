@@ -106,6 +106,11 @@ begin
             assert(debug_register_data = ("0000" & reg_num & "00000000"))
                 report "loadiu instruction failed."
                 severity FAILURE;
+                
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in loadiu instruction."
+                severity FAILURE;
           
         end loop;
     
@@ -128,6 +133,11 @@ begin
           
             assert(debug_register_data = ("000000000000" & reg_num))
                 report "loadil instruction failed."
+                severity FAILURE;
+                
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in loadil instruction."
                 severity FAILURE;
           
         end loop;
@@ -159,6 +169,11 @@ begin
                 assert(debug_register_data = compare_value)
                     report "add instruction failed."
                     severity FAILURE;
+                    
+                -- Check that PC incremented.
+                assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                    report "PC did not advance in add instruction."
+                    severity FAILURE;
             
             end if;
             
@@ -187,6 +202,11 @@ begin
                     report "sub instruction failed."
                     severity FAILURE;
                     
+                -- Check that PC incremented.
+                assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                    report "PC did not advance in sub instruction."
+                    severity FAILURE;
+                    
             end if;
           
         end loop;
@@ -210,6 +230,11 @@ begin
             
             assert(debug_register_data = compare_value)
                 report "and instruction failed."
+                severity FAILURE;
+          
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in and instruction."
                 severity FAILURE;
           
         end loop;
@@ -247,6 +272,11 @@ begin
             assert(debug_register_data = compare_value)
                 report "or instruction failed."
                 severity FAILURE;
+                
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in or instruction."
+                severity FAILURE;
           
         end loop;
         
@@ -283,6 +313,11 @@ begin
             assert(debug_register_data = compare_value)
                 report "first not instruction failed."
                 severity FAILURE;
+                
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in not instruction."
+                severity FAILURE;
           
             -- Store PC to test that instruction correctly affects PC change.
             pre_instruction_pc := pc_pointer;
@@ -293,6 +328,11 @@ begin
             
             assert(debug_register_data = not(compare_value))
                 report "second not instruction failed."
+                severity FAILURE;
+                
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in not instruction."
                 severity FAILURE;
           
         end loop;
@@ -316,6 +356,11 @@ begin
             
             assert(debug_register_data = compare_value)
                 report "lsr instruction failed."
+                severity FAILURE;
+                
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in lsr instruction."
                 severity FAILURE;
           
         end loop;
@@ -353,6 +398,11 @@ begin
             assert(debug_register_data = compare_value)
                 report "lsl instruction failed."
                 severity FAILURE;
+                
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in lsl instruction."
+                severity FAILURE;
           
         end loop;
         
@@ -389,6 +439,11 @@ begin
             assert(debug_register_data = compare_value)
                 report "first addi instruction failed."
                 severity FAILURE;
+                
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in addi instruction."
+                severity FAILURE;
           
             -- Setup second compare value.
             compare_value := std_logic_vector(to_unsigned(i, 16));
@@ -402,6 +457,11 @@ begin
             
             assert(debug_register_data = compare_value)
                 report "second addi instruction failed."
+                severity FAILURE;
+                
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in addi instruction."
                 severity FAILURE;
         
         end loop;
@@ -733,6 +793,11 @@ begin
             assert(debug_register_data = compare_value)
                 report "ldr instruction failed (incorrect data memory obtained)."
                 severity FAILURE;
+                
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in ldr instruction."
+                severity FAILURE;
           
         end loop;
         
@@ -782,6 +847,11 @@ begin
             -- Check that the datapath is writing to the correct address.
             assert(address_bus(3 downto 0) = reg_num)
                 report "str instruction failed (incorrect data memory address)."
+                severity FAILURE;
+          
+            -- Check that PC incremented.
+            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                report "PC did not advance in str instruction."
                 severity FAILURE;
           
         end loop;
