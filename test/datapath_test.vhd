@@ -69,10 +69,13 @@ begin
         
         -- Intermediate variables.
         variable reg_num            : std_logic_vector(3 downto 0);
-        variable compare_value      : std_logic_vector(15 downto 0);
+        variable cond_num           : std_logic_vector(1 downto 0);
         
         -- Comparison variables.
         variable condition_compare  : std_logic_vector(1 downto 0);
+        variable compare_value      : std_logic_vector(15 downto 0);
+        variable pre_instruction_pc : std_logic_vector(9 downto 0);
+        
     begin
   
         ---------------------------------------
@@ -83,6 +86,9 @@ begin
         -- Test loadiu.
         -- Load the register number into the upper 8 bits of each register.
         for i in 0 to 15 loop
+      
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
       
             -- Convert i to std_logic_vector.
             reg_num := std_logic_vector(to_unsigned(i, 4));
@@ -103,6 +109,9 @@ begin
         -- Test loadil.
         -- Load the register number into the lower 8 bits of each register.
         for i in 0 to 15 loop
+      
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
       
             -- Convert i to std_logic_vector.
             reg_num := std_logic_vector(to_unsigned(i, 4));
@@ -129,6 +138,9 @@ begin
         -- Add r0 to every other register.
         for i in 1 to 15 loop
         
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
+        
             -- Convert i to std_logic_vector and setup comparison value.
             reg_num             := std_logic_vector(to_unsigned(i, 4));
             compare_value       := std_logic_vector(to_signed(i + 1, 16));
@@ -149,6 +161,9 @@ begin
         -- Subtract r0 to every other register.
         for i in 1 to 15 loop
         
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
+        
             -- Convert i to std_logic_vector and setup comparison value.
             reg_num             := std_logic_vector(to_unsigned(i, 4));
             compare_value       := std_logic_vector(to_signed(i - 1, 16));
@@ -168,6 +183,9 @@ begin
         -- Test and.  (rd(4) rs1(4) rs2(4))
         -- And r10 with every other register.
         for i in 0 to 15 loop
+        
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
         
             -- Convert i to std_logic_vector and setup comparison value.
             reg_num             := std_logic_vector(to_unsigned(i, 4));
@@ -202,6 +220,9 @@ begin
         -- Or r9 with every other register.
         for i in 0 to 15 loop
         
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
+        
             -- Convert i to std_logic_vector and setup comparison value.
             reg_num             := std_logic_vector(to_unsigned(i, 4));
             compare_value       := std_logic_vector(to_unsigned(i, 16)) or "0000000000001001";
@@ -235,6 +256,9 @@ begin
         -- Not each register twice, testing value after each not.
         for i in 0 to 15 loop
         
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
+        
             -- Convert i to std_logic_vector and setup comparison value.
             reg_num             := std_logic_vector(to_unsigned(i, 4));
             compare_value       := not(std_logic_vector(to_unsigned(i, 16)));
@@ -247,6 +271,9 @@ begin
             assert(debug_register_data = compare_value)
                 report "first not instruction failed."
                 severity FAILURE;
+          
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
           
             -- not reg_num, reg_num
             instruction <= form_machine_code(not_op, reg_num, reg_num, "0000");
@@ -262,6 +289,9 @@ begin
         -- Test lsr.  (rd(4) rs1(4) constant(4))
         -- Shift every register by reg_num times to the right.
         for i in 0 to 15 loop
+        
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
         
             -- Convert i to std_logic_vector and setup comparison value.
             reg_num             := std_logic_vector(to_unsigned(i, 4));
@@ -296,6 +326,9 @@ begin
         -- Shift every register by reg_num times to the left.
         for i in 0 to 15 loop
         
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
+        
             -- Convert i to std_logic_vector and setup comparison value.
             reg_num             := std_logic_vector(to_unsigned(i, 4));
             compare_value       := std_logic_vector(shift_left(to_unsigned(i, 16), i));
@@ -329,6 +362,9 @@ begin
         -- Add 1 to each register, and then add -1 to each register, checking each time.
         for i in 0 to 15 loop
         
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
+        
             -- Convert i to std_logic_vector and setup comparison value.
             reg_num             := std_logic_vector(to_unsigned(i, 4));
             compare_value       := std_logic_vector(to_unsigned(i + 1, 16));
@@ -344,6 +380,9 @@ begin
           
             -- Setup second compare value.
             compare_value := std_logic_vector(to_unsigned(i, 16));
+          
+            -- Store PC to test that instruction correctly affects PC change.
+            pre_instruction_pc := pc_pointer;
           
             -- add reg_num, reg_num, -1
             instruction <= form_machine_code(addi_op, reg_num, reg_num, "1111");
@@ -364,44 +403,107 @@ begin
         
             for instruction_condition in 0 to 3 loop
             
-                -- Test branch immediate (no need to compare here).
-                instruction <= form_machine_code(br_op, "0101", "000000", std_logic_vector(to_unsigned(instruction_condition, 2)));
+                -- Store current condition being tested.
+                cond_num := std_logic_vector(to_unsigned(instruction_condition, 2));
+                
+                -- Store PC to test that instruction correctly affects PC change.
+                pre_instruction_pc := pc_pointer;
+                
+                -- Go ahead and branch without comparison to test for branch immediate.
+                instruction <= form_machine_code(br_op, "0101", "000000", cond_num);
                 wait for 100 ns;
+                
+                -- Test for branch immediate correctness.
+                if (cond_num = "00") then
+                
+                    -- See if branch took place.
+                    assert(pc_pointer = "0000000000000101")
+                        report "br instruction failed."
+                        severity FAILURE;
+                
+                else 
+                
+                    -- If branch didn't take place, PC should be incremented by one.
+                    assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                        report "br instruction failed."
+                        severity FAILURE;
+                
+                end if;
             
-                -- Setup the compare value for the condition.
-                condition_compare := std_logic_vector(to_unsigned(instruction_condition, 2));
             
+                -- Store PC to test that instruction correctly affects PC change.
+                pre_instruction_pc := pc_pointer;
+                
                 -- Compare two registers that are equal (compare r1 to r1).
-                instruction <= form_machine_code(cmp_op, "0000", "0001", "0001");
-                instruction <= form_machine_code(br_op, "0101", "000000", "01");
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0001");       wait for 100 ns;
+                instruction <= form_machine_code(br_op, "0101", "000000", cond_num);    wait for 100 ns;
                 
-                wait for 100 ns;
+                -- Test for branch equal to correctness.
+                if (cond_num = "01") then
                 
-                wait for 100 ns;
+                    -- See if branch took place.
+                    assert(pc_pointer = "0000000000000101")
+                        report "breq instruction failed."
+                        severity FAILURE;
+                
+                else 
+                
+                    -- If branch didn't take place, PC should be incremented by one.
+                    assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
+                        report "br instruction failed."
+                        severity FAILURE;
+                
+                end if;
+                
+                
+                -- Store PC to test that instruction correctly affects PC change.
+                pre_instruction_pc := pc_pointer;
                 
                 -- Compare two registers, where the first is greater than the second (compare r1 to r0).
-                instruction <= form_machine_code(cmp_op, "0000", "0001", "0000");
-                wait for 100 ns;
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0000");       wait for 100 ns;
+                instruction <= form_machine_code(br_op, "0101", "000000", cond_num);    wait for 100 ns;
+                
+                -- Test for less than correctness.
+                if (cond_num = "10") then
+                
+                    -- See if branch took place.
+                    assert(pc_pointer = "0000000000000101")
+                        report "brlt instruction failed."
+                        severity FAILURE;
+                
+                else 
+                
+                    -- If branch didn't take place, PC should be incremented by one.
+                    assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
+                        report "br instruction failed."
+                        severity FAILURE;
+                
+                end if;
+                
+                
+                -- Store PC to test that instruction correctly affects PC change.
+                pre_instruction_pc := pc_pointer;
                 
                 -- Compare two registers, where the second is greater than the first (compare r1 to r2).
-                instruction <= form_machine_code(cmp_op, "0000", "0001", "0010");
-                wait for 100 ns;
-            
-            
-            
-                -- Convert i to std_logic_vector and setup comparison value.
-                reg_num             := std_logic_vector(to_unsigned(i, 4));
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0010");       wait for 100 ns;
+                instruction <= form_machine_code(br_op, "0101", "000000", cond_num);    wait for 100 ns;
                 
-                compare_value       := std_logic_vector(shift_left(to_unsigned(i, 16), i));
-                debug_register_addr <= reg_num;
-
-                -- lsr reg_num, reg_num, reg_num
-                instruction <= form_machine_code(lsl_op, reg_num, reg_num, reg_num);
-                wait for 100 ns;
+                -- Test for less than correctness.
+                if (cond_num = "11") then
                 
-                assert(debug_register_data = compare_value)
-                    report "lsl instruction failed."
-                    severity FAILURE;
+                    -- See if branch took place.
+                    assert(pc_pointer = "0000000000000101")
+                        report "brlt instruction failed."
+                        severity FAILURE;
+                
+                else 
+                
+                    -- If branch didn't take place, PC should be incremented by one.
+                    assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 2, 10)))
+                        report "br instruction failed."
+                        severity FAILURE;
+                
+                end if;
 
             end loop;
                     
