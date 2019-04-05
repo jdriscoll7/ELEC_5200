@@ -93,7 +93,7 @@ entity control_unit is
 
     port (op_code           : in  op_code_t;
           in_condition      : in  condition_t;
-          pc_condition      : in  condition_t;
+          pc_condition      : in  std_logic_vector(1 downto 0);
           clock             : in  std_logic;
           control_signals   : out control_signal_bus_t);
 
@@ -128,7 +128,7 @@ architecture behavioral of control_unit is
 
 begin
 
-    process(op_code, in_condition)
+    process(clock)
     
         -- Need to OR the constant patterns with branch taken signal based on input
         -- control signal ports.
@@ -141,39 +141,49 @@ begin
     
     begin
 
-        -- Set branch based on input condition from instruction and condition in PC.
-        if (in_condition = pc_condition) then
-            branch_setter := '1';
-        else
-            branch_setter := '0';
-        end if;
-
-        -- OR in the branch control signal.
-        br_or(0) := branch_setter;
-        b_or(0)  := branch_setter;
-        bl_or(0) := branch_setter;
+        if (rising_edge(clock)) then
+        
+            -- Set branch based on input condition from instruction and condition in PC.
+            if (in_condition = no_condition) then
+                branch_setter := '1';
+            elsif (in_condition = equal_to and pc_condition(0) = '1') then
+                branch_setter := '1';    
+            elsif (in_condition = less_than and pc_condition(1) = '1') then
+                branch_setter := '1';
+            elsif (in_condition = greater_than and pc_condition(1) = '0' and pc_condition(0) = '0') then
+                branch_setter := '1';
+            else
+                branch_setter := '0';
+            end if;
     
-        case op_code is
-            
-            -- Decode instruction.
-            when add_op     => control_signals <= control_signal_bus(ADD_SIGNALS);
-            when sub_op     => control_signals <= control_signal_bus(SUB_SIGNALS);
-            when str_op     => control_signals <= control_signal_bus(STR_SIGNALS);
-            when ldr_op     => control_signals <= control_signal_bus(LDR_SIGNALS);
-            when and_op     => control_signals <= control_signal_bus(AND_SIGNALS);
-            when or_op      => control_signals <= control_signal_bus(OR_SIGNALS);
-            when not_op     => control_signals <= control_signal_bus(NOT_SIGNALS);
-            when cmp_op     => control_signals <= control_signal_bus(CMP_SIGNALS);
-            when br_op      => control_signals <= control_signal_bus(br_or);
-            when b_op       => control_signals <= control_signal_bus(b_or);
-            when bl_op      => control_signals <= control_signal_bus(bl_or);
-            when loadil_op  => control_signals <= control_signal_bus(LOADIL_SIGNALS);
-            when loadiu_op  => control_signals <= control_signal_bus(LOADIU_SIGNALS);
-            when addi_op    => control_signals <= control_signal_bus(ADDI_SIGNALS);
-            when lsr_op     => control_signals <= control_signal_bus(LSR_SIGNALS);
-            when lsl_op     => control_signals <= control_signal_bus(LSL_SIGNALS);
+            -- OR in the branch control signal.
+            br_or(0) := branch_setter;
+            b_or(0)  := branch_setter;
+            bl_or(0) := branch_setter;
+        
+            case op_code is
+                
+                -- Decode instruction.
+                when add_op     => control_signals <= control_signal_bus(ADD_SIGNALS);
+                when sub_op     => control_signals <= control_signal_bus(SUB_SIGNALS);
+                when str_op     => control_signals <= control_signal_bus(STR_SIGNALS);
+                when ldr_op     => control_signals <= control_signal_bus(LDR_SIGNALS);
+                when and_op     => control_signals <= control_signal_bus(AND_SIGNALS);
+                when or_op      => control_signals <= control_signal_bus(OR_SIGNALS);
+                when not_op     => control_signals <= control_signal_bus(NOT_SIGNALS);
+                when cmp_op     => control_signals <= control_signal_bus(CMP_SIGNALS);
+                when br_op      => control_signals <= control_signal_bus(br_or);
+                when b_op       => control_signals <= control_signal_bus(b_or);
+                when bl_op      => control_signals <= control_signal_bus(bl_or);
+                when loadil_op  => control_signals <= control_signal_bus(LOADIL_SIGNALS);
+                when loadiu_op  => control_signals <= control_signal_bus(LOADIU_SIGNALS);
+                when addi_op    => control_signals <= control_signal_bus(ADDI_SIGNALS);
+                when lsr_op     => control_signals <= control_signal_bus(LSR_SIGNALS);
+                when lsl_op     => control_signals <= control_signal_bus(LSL_SIGNALS);
+    
+            end case;
 
-        end case;
+        end if;
 
     end process;
 

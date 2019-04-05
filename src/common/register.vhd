@@ -31,7 +31,7 @@ begin
     process(clock)
     begin
     
-        if rising_edge(clock) then
+        if falling_edge(clock) then
             
             if (write_enable = '1') then
             

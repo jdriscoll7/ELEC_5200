@@ -57,8 +57,8 @@ architecture behavioral of datapath is
     signal c_alu_op         : alu_op_t;
     
     -- PC-related signals.
-    signal pc_condition_in     : condition_t;
-    signal pc_condition_out    : condition_t;
+    signal pc_condition_in     : std_logic_vector(1 downto 0);
+    signal pc_condition_out    : std_logic_vector(1 downto 0);
     signal pc_pointer_in       : std_logic_vector(9 downto 0);
     signal pc_pointer_out      : std_logic_vector(9 downto 0);
     signal pc_input            : std_logic_vector(15 downto 0);
@@ -97,7 +97,7 @@ begin
     control_unit : entity work.control_unit
         port map (op_code           => instr_op_code,
                   in_condition      => instr_condition,
-                  pc_condition      => instr_condition,
+                  pc_condition      => pc_condition_out,
                   clock             => clock,
                   control_signals   => control_signals);
 
@@ -110,7 +110,8 @@ begin
                   data_in        => file_data_in,
                   write_enable   => control_signals.c_reg_write,
                   data_out_1     => file_out_1,
-                  data_out_2     => file_out_2);
+                  data_out_2     => file_out_2,
+                  clock          => clock);
                   
     -- Second register file that mimics true file for debugging.
     register_file_debug : entity work.register_file
@@ -120,7 +121,8 @@ begin
                   data_in        => file_data_in,
                   write_enable   => control_signals.c_reg_write,
                   data_out_1     => debug_register_data,
-                  data_out_2     => debug_register_data);
+                  data_out_2     => debug_register_data,
+                  clock          => clock);
         
         
     -- ALU instantiation.
@@ -170,7 +172,7 @@ begin
     ---------------------------------------
     -- Controller datapath multiplexing. --
     ---------------------------------------
-    process(clock)
+    process(clock, control_signals, branch_address, alu_out, pc_condition_out, pc_pointer_out, instr_raw)
     begin
     
         -- Determine PC value input.
@@ -200,7 +202,7 @@ begin
         
         else
         
-            pc_condition_in <= to_condition_t(alu_out(15) & alu_zero_flag);
+            pc_condition_in <= alu_out(15) & alu_zero_flag;
         
         end if;
         
@@ -252,9 +254,18 @@ begin
         
         else
         
-            alu_in_2(15 downto 0) <= (others => small_constant_operand(3)); 
-            alu_in_2(3 downto 0)  <= small_constant_operand;
-        
+            if (instr_op_code = addi_op) then
+            
+                alu_in_2(15 downto 0) <= (others => small_constant_operand(3)); 
+                alu_in_2(3 downto 0)  <= small_constant_operand;
+            
+            else
+            
+                alu_in_2(15 downto 0) <= (others => '0'); 
+                alu_in_2(3 downto 0)  <= small_constant_operand;
+            
+            end if;
+            
         end if;
         
         
@@ -269,14 +280,21 @@ begin
     c_alu_op  <= to_alu_op_t(control_signals.c_alu_op);
     
     -- PC register related.
-    pc_input(15 downto 6) <= pc_pointer_in;
-    pc_input(1 downto 0)  <= std_logic_vector(to_unsigned(condition_t'pos(pc_condition_in), 2));
+    pc_input(15 downto 6)   <= pc_pointer_in;
+    pc_input(1 downto 0)    <= pc_condition_in;
+    pc_pointer_out          <= pc_output(15 downto 6);
+    pc_condition_out        <= pc_output(1 downto 0);
     memory_output_bus.instruction_address_bus <= pc_pointer_out;
     
     -- Data memory related.
     memory_output_bus.data_write_enable <= control_signals.c_mem_write;
+    memory_output_bus.data_address_bus  <= alu_out;
+    memory_output_bus.data_write_bus    <= file_out_1;
     
     -- Instruction memory related.
     instr_raw <= memory_input_bus.instruction_read_bus;
+    
+    -- ALU related.
+    alu_in_1 <= file_out_1;
     
 end behavioral;

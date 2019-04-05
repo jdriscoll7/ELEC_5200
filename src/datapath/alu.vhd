@@ -80,12 +80,12 @@ begin
             when alu_shift_right =>
                 
                 -- Shift the first input to the right by the amount in the second input.
-                alu_result <= std_logic_vector(shift_right(signed(alu_in_1), to_integer(signed(alu_in_2))));
+                alu_result <= std_logic_vector(shift_right(unsigned(alu_in_1), to_integer(signed(alu_in_2))));
                 
             when alu_shift_left =>
                 
                 -- Shift the first input to the left by the amount in the second input.
-                alu_result <= std_logic_vector(shift_left(signed(alu_in_1), to_integer(signed(alu_in_2))));
+                alu_result <= std_logic_vector(shift_left(unsigned(alu_in_1), to_integer(signed(alu_in_2))));
         
         end case;
     

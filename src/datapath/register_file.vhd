@@ -26,7 +26,8 @@ entity register_file is
              data_in        : in  std_logic_vector((REGISTER_SIZE - 1) downto 0);
              write_enable   : in  std_logic;
              data_out_1     : out std_logic_vector((REGISTER_SIZE - 1) downto 0);
-             data_out_2     : out std_logic_vector((REGISTER_SIZE - 1) downto 0));
+             data_out_2     : out std_logic_vector((REGISTER_SIZE - 1) downto 0);
+             clock          : in  std_logic);
              
 end register_file;
 
@@ -43,10 +44,10 @@ architecture behavioral of register_file is
 begin
 
     -- Handle register writes.
-    process(write_enable, data_in)
+    process(clock)
     begin
         
-        if (write_enable = '1') then
+        if (write_enable = '1' and falling_edge(clock)) then
         
             register_file_storage(to_integer(unsigned(write_address))) <= data_in;
             

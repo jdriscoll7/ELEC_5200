@@ -31,8 +31,9 @@ architecture datapath_test of datapath_test_bench is
                                arg1 : in std_logic_vector;
                                arg2 : in std_logic_vector) 
     return std_logic_vector is
+    begin
     
-        return (arg0 & arg1 & arg2 & std_logic_vector(to_unsigned(op_code_t'pos(op), 2)));
+        return (arg0 & arg1 & arg2 & std_logic_vector(to_unsigned(op_code_t'pos(op), 4)));
         
     end function form_machine_code;
     
@@ -41,8 +42,9 @@ architecture datapath_test of datapath_test_bench is
                                arg0 : in std_logic_vector;
                                arg1 : in std_logic_vector) 
     return std_logic_vector is
+    begin
     
-        return (arg0 & arg1 & std_logic_vector(to_unsigned(op_code_t'pos(op), 2)));
+        return (arg0 & arg1 & std_logic_vector(to_unsigned(op_code_t'pos(op), 4)));
         
     end function form_machine_code;
                                
@@ -77,6 +79,8 @@ begin
         variable pre_instruction_pc : std_logic_vector(9 downto 0);
         
     begin
+  
+        wait for 25 ns;
   
         ---------------------------------------
         -- Test immediate load instructions. --
@@ -135,8 +139,8 @@ begin
         
         
         -- Test add.  (rd(4) rs1(4) rs2(4))
-        -- Add r0 to every other register.
-        for i in 1 to 15 loop
+        -- Add r1 to every other register.
+        for i in 0 to 15 loop
         
             -- Store PC to test that instruction correctly affects PC change.
             pre_instruction_pc := pc_pointer;
@@ -146,36 +150,44 @@ begin
             compare_value       := std_logic_vector(to_signed(i + 1, 16));
             debug_register_addr <= reg_num;
 
-            -- add reg_num, reg_num, r0
-            instruction <= form_machine_code(add_op, reg_num, reg_num, "0000");
-            wait for 100 ns;
+            -- add reg_num, reg_num, r1 if reg_num isn't r1.
+            if (reg_num /= "0001") then
             
-            assert(debug_register_data = compare_value)
-                report "add instruction failed."
-                severity FAILURE;
+                instruction <= form_machine_code(add_op, reg_num, reg_num, "0001");
+                wait for 100 ns;
+                
+                assert(debug_register_data = compare_value)
+                    report "add instruction failed."
+                    severity FAILURE;
+            
+            end if;
+            
           
         end loop;
         
         
         -- Test sub.  (rd(4) rs1(4) rs2(4))
-        -- Subtract r0 to every other register.
-        for i in 1 to 15 loop
+        -- Subtract r1 to every other register.
+        for i in 0 to 15 loop
         
             -- Store PC to test that instruction correctly affects PC change.
             pre_instruction_pc := pc_pointer;
         
             -- Convert i to std_logic_vector and setup comparison value.
             reg_num             := std_logic_vector(to_unsigned(i, 4));
-            compare_value       := std_logic_vector(to_signed(i - 1, 16));
+            compare_value       := std_logic_vector(to_signed(i, 16));
             debug_register_addr <= reg_num;
 
-            -- sub reg_num, reg_num, r0
-            instruction <= form_machine_code(sub_op, reg_num, reg_num, "0000");
-            wait for 100 ns;
-            
-            assert(debug_register_data = compare_value)
-                report "sub instruction failed."
-                severity FAILURE;
+            -- sub reg_num, reg_num, r1 if reg_num isn't r1.
+            if (reg_num /= "0001") then
+                instruction <= form_machine_code(sub_op, reg_num, reg_num, "0001");
+                wait for 100 ns;
+                
+                assert(debug_register_data = compare_value)
+                    report "sub instruction failed."
+                    severity FAILURE;
+                    
+            end if;
           
         end loop;
         
@@ -392,6 +404,21 @@ begin
                 report "second addi instruction failed."
                 severity FAILURE;
         
+        end loop;
+        
+        
+        -- Reload register numbers to each register for subsequent tests.
+        for i in 0 to 15 loop
+        
+            -- Convert i to std_logic_vector.
+            reg_num := std_logic_vector(to_unsigned(i, 4));
+          
+            -- loadil reg_num, reg_num
+            instruction <=  form_machine_code(loadil_op, reg_num, "0000" & reg_num);
+            wait for 100 ns;
+          
+        end loop;
+        
         
         ----------------------------------------------------
         -- Test all branch (and comparison) instructions. --
@@ -405,44 +432,19 @@ begin
             
                 -- Store current condition being tested.
                 cond_num := std_logic_vector(to_unsigned(instruction_condition, 2));
-                
-                -- Store PC to test that instruction correctly affects PC change.
-                pre_instruction_pc := pc_pointer;
-                
-                -- Go ahead and branch without comparison to test for branch immediate.
-                instruction <= form_machine_code(br_op, "0101", "000000", cond_num);
-                wait for 100 ns;
-                
-                -- Test for branch immediate correctness.
-                if (cond_num = "00") then
-                
-                    -- See if branch took place.
-                    assert(pc_pointer = "0000000000000101")
-                        report "br instruction failed."
-                        severity FAILURE;
-                
-                else 
-                
-                    -- If branch didn't take place, PC should be incremented by one.
-                    assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
-                        report "br instruction failed."
-                        severity FAILURE;
-                
-                end if;
-            
             
                 -- Store PC to test that instruction correctly affects PC change.
                 pre_instruction_pc := pc_pointer;
                 
                 -- Compare two registers that are equal (compare r1 to r1).
-                instruction <= form_machine_code(cmp_op, "0000", "0001", "0001");       wait for 100 ns;
-                instruction <= form_machine_code(br_op, "0101", "000000", cond_num);    wait for 100 ns;
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0001");               wait for 100 ns;
+                instruction <= form_machine_code(br_op, "0000", "0101", "00" & cond_num);       wait for 100 ns;
                 
                 -- Test for branch equal to correctness.
-                if (cond_num = "01") then
+                if (cond_num = "01" or cond_num = "00") then
                 
                     -- See if branch took place.
-                    assert(pc_pointer = "0000000000000101")
+                    assert(pc_pointer = "0000000101")
                         report "breq instruction failed."
                         severity FAILURE;
                 
@@ -460,14 +462,14 @@ begin
                 pre_instruction_pc := pc_pointer;
                 
                 -- Compare two registers, where the first is greater than the second (compare r1 to r0).
-                instruction <= form_machine_code(cmp_op, "0000", "0001", "0000");       wait for 100 ns;
-                instruction <= form_machine_code(br_op, "0101", "000000", cond_num);    wait for 100 ns;
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0010");               wait for 100 ns;
+                instruction <= form_machine_code(br_op, "0000", "0101", "00" & cond_num);       wait for 100 ns;
                 
                 -- Test for less than correctness.
-                if (cond_num = "10") then
+                if (cond_num = "10" or cond_num = "00") then
                 
                     -- See if branch took place.
-                    assert(pc_pointer = "0000000000000101")
+                    assert(pc_pointer = "0000000101")
                         report "brlt instruction failed."
                         severity FAILURE;
                 
@@ -485,14 +487,14 @@ begin
                 pre_instruction_pc := pc_pointer;
                 
                 -- Compare two registers, where the second is greater than the first (compare r1 to r2).
-                instruction <= form_machine_code(cmp_op, "0000", "0001", "0010");       wait for 100 ns;
-                instruction <= form_machine_code(br_op, "0101", "000000", cond_num);    wait for 100 ns;
+                instruction <= form_machine_code(cmp_op, "0000", "0001", "0000");       wait for 100 ns;
+                instruction <= form_machine_code(br_op, "0000", "0101", "00" & cond_num);    wait for 100 ns;
                 
-                -- Test for less than correctness.
-                if (cond_num = "11") then
+                -- Test for greater than correctness.
+                if (cond_num = "11" or cond_num = "00") then
                 
                     -- See if branch took place.
-                    assert(pc_pointer = "0000000000000101")
+                    assert(pc_pointer = "0000000101")
                         report "brgt instruction failed."
                         severity FAILURE;
                 
@@ -542,15 +544,23 @@ begin
             read_data_bus   <= compare_value;
             wait for 100 ns;
             
-            -- Check that the datapath is requesting data from correct memory location.
-            assert(address_bus = reg_num)
-                report "ldr instruction failed (incorrect data memory address)."
-                severity FAILURE;
-            
             -- Check that the datapath is stored the data from memory correctly.
             assert(debug_register_data = compare_value)
                 report "ldr instruction failed (incorrect data memory obtained)."
                 severity FAILURE;
+          
+        end loop;
+        
+        
+        -- Reload register numbers to each register for subsequent tests.
+        for i in 0 to 15 loop
+        
+            -- Convert i to std_logic_vector.
+            reg_num := std_logic_vector(to_unsigned(i, 4));
+          
+            -- loadil reg_num, reg_num
+            instruction <=  form_machine_code(loadil_op, reg_num, "0000" & reg_num);
+            wait for 100 ns;
           
         end loop;
         
@@ -580,12 +590,12 @@ begin
                 severity FAILURE;
             
             -- Check that the datapath is putting correct data on write bus.
-            assert(data_write_bus = reg_num)
+            assert(write_data_bus(3 downto 0) = reg_num)
                 report "str instruction failed (incorrect data put on write bus)."
                 severity FAILURE;
             
             -- Check that the datapath is writing to the correct address.
-            assert(address_bus = reg_num)
+            assert(address_bus(3 downto 0) = reg_num)
                 report "str instruction failed (incorrect data memory address)."
                 severity FAILURE;
           
