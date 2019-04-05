@@ -35,7 +35,7 @@ use work.all;
 use work.instruction_memory;
 
 
-entity top_level is
+entity datapath is
     
     port (debug_register_address    : in  std_logic_vector(3 downto 0);  
           debug_register_data       : out std_logic_vector(15 downto 0);
@@ -43,10 +43,10 @@ entity top_level is
           memory_output_bus         : out memory_output_bus_t;
           clock                     : in  std_logic);
     
-end top_level;
+end datapath;
 
 
-architecture behavioral of top_level is
+architecture behavioral of datapath is
 
     ------------------------------------
     -- Signals used for interconnect. --
