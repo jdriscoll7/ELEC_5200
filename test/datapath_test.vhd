@@ -339,7 +339,7 @@ begin
         
         
         -- Test lsr.  (rd(4) rs1(4) constant(4))
-        -- Shift every register by reg_num times to the right.
+        -- Shift every register by r2 times to the right.
         for i in 0 to 15 loop
         
             -- Store PC to test that instruction correctly affects PC change.
@@ -347,22 +347,26 @@ begin
         
             -- Convert i to std_logic_vector and setup comparison value.
             reg_num             := std_logic_vector(to_unsigned(i, 4));
-            compare_value       := std_logic_vector(shift_right(to_unsigned(i, 16), i));
+            compare_value       := std_logic_vector(shift_right(to_unsigned(i, 16), 2));
             debug_register_addr <= reg_num;
 
             -- lsr reg_num, reg_num, reg_num
-            instruction <= form_machine_code(lsr_op, reg_num, reg_num, reg_num);
-            wait for 100 ns;
+            if (reg_num /= "0010") then
             
-            assert(debug_register_data = compare_value)
-                report "lsr instruction failed."
-                severity FAILURE;
+                instruction <= form_machine_code(lsr_op, reg_num, reg_num, "0010");
+                wait for 100 ns;
                 
-            -- Check that PC incremented.
-            assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
-                report "PC did not advance in lsr instruction."
-                severity FAILURE;
-          
+                assert(debug_register_data = compare_value)
+                    report "lsr instruction failed."
+                    severity FAILURE;
+                    
+                -- Check that PC incremented.
+                assert(pc_pointer = std_logic_vector(to_unsigned(to_integer(unsigned(pre_instruction_pc)) + 1, 10)))
+                    report "PC did not advance in lsr instruction."
+                    severity FAILURE;
+            
+            end if;
+            
         end loop;
         
   
@@ -774,7 +778,7 @@ begin
         --
         -- Since there is no memory, the read data bus is driven and the data address bus is checked
         -- for correctness.
-        for i in 0 to 15 loop
+        for i in 1 to 15 loop
         
             -- Store PC to test that instruction correctly affects PC change.
             pre_instruction_pc := pc_pointer;
