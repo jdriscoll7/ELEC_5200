@@ -68,7 +68,7 @@ package types is
     -- Used for the instruction memory signals.
     type memory_output_bus_t is record
         instruction_address_bus : std_logic_vector(9 downto 0);
-        data_address_bus        : std_logic_vector(15 downto 0);
+        data_address_bus        : std_logic_vector(9 downto 0);
         data_write_bus          : std_logic_vector(15 downto 0);
         data_write_enable       : std_logic;
     end record memory_output_bus_t;

@@ -17,20 +17,18 @@ use work.instruction_memory;
 
 entity cpu is
 
-    port (clock : in  std_logic);
+    port (debug_register_address    : in  std_logic_vector(3 downto 0);   
+          debug_register_data       : out std_logic_vector(15 downto 0);
+          clock                     : in  std_logic);
 
 end cpu;
 
 
 architecture behavioral of cpu is
 
-    -- Debugging signals to read register file of CPU.
-    signal debug_register_address   : std_logic_vector(3 downto 0); 
-    signal debug_register_data      : std_logic_vector(15 downto 0);
-
     -- Memory buses.
-    signal memory_input_bus         : memory_input_bus_t;
-    signal memory_output_bus        : memory_output_bus_t;
+    signal memory_input_bus     : memory_input_bus_t;
+    signal memory_output_bus    : memory_output_bus_t;
 
 begin
 
