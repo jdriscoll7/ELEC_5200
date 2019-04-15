@@ -275,7 +275,7 @@ begin
     
     -- Data memory related.
     memory_output_bus.data_write_enable <= control_signals.c_mem_write;
-    memory_output_bus.data_address_bus  <= alu_out;
+    memory_output_bus.data_address_bus  <= alu_out(9 downto 0);
     memory_output_bus.data_write_bus    <= file_out_1;
     
     -- Instruction memory related.

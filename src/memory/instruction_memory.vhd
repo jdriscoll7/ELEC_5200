@@ -22,7 +22,7 @@ architecture behavioral of instruction_memory is
     
     -- Types for internal representation of memory.
     subtype word_t               is std_logic_vector(15 downto 0);
-    type    instruction_memory_t is array(((2**10) - 1) downto 0) of word_t;
+    type    instruction_memory_t is array(0 to 2**10 - 1) of word_t;
 
     constant main_program : instruction_memory_t := ("0000000000011011",
                                                      "0000000010101111",
@@ -36,13 +36,14 @@ architecture behavioral of instruction_memory is
                                                      "0011001110001110",
                                                      "0010001000110100",
                                                      "0000000000100000",
-                                                     others => "0000000000000000");
+                                                     "0000001100001001",
+                                                     others => (others => '0'));
 
     -- Instruction memory as a signal.
-    signal instruction_memory_storage : instruction_memory_t := main_program;
+    signal internal_storage : instruction_memory_t := main_program;
 
 begin
 
-    data_out <= instruction_memory_storage(to_integer(unsigned(read_address)));
+    data_out <= internal_storage(to_integer(unsigned(read_address)));
 
 end behavioral;
