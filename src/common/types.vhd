@@ -77,7 +77,7 @@ package types is
     function to_op_code_t(code : in std_logic_vector) return op_code_t;
     function to_alu_op_t(code : in std_logic_vector) return alu_op_t;
     function to_condition_t(code : in std_logic_vector) return condition_t;
-        
+
 end types;
 
 
@@ -108,16 +108,3 @@ package body types is
     end function to_condition_t;
     
 end package body types;
-
-
-
-
-
-
-
-
-
-
-
-
-
