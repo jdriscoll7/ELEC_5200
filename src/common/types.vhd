@@ -59,6 +59,20 @@ package types is
         size        : integer;
     end record control_signal_bus_t;
         
+     -- Used for the data memory signals.
+    type memory_input_bus_t is record
+        instruction_read_bus    : std_logic_vector(15 downto 0);
+        data_read_bus           : std_logic_vector(15 downto 0);
+    end record memory_input_bus_t;
+    
+    -- Used for the instruction memory signals.
+    type memory_output_bus_t is record
+        instruction_address_bus : std_logic_vector(9 downto 0);
+        data_address_bus        : std_logic_vector(15 downto 0);
+        data_write_bus          : std_logic_vector(15 downto 0);
+        data_write_enable       : std_logic;
+    end record memory_output_bus_t;
+        
     -- Casting functions for custom types.
     function to_op_code_t(code : in std_logic_vector) return op_code_t;
     function to_alu_op_t(code : in std_logic_vector) return alu_op_t;

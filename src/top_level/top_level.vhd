@@ -4,30 +4,10 @@ use ieee.numeric_std.all;
 use work.types.all;
 
 
-package datapath_types is
-
-    -- Used for the data memory signals.
-    type memory_input_bus_t is record
-        instruction_read_bus    : std_logic_vector(15 downto 0);
-        data_read_bus           : std_logic_vector(15 downto 0);
-    end record memory_input_bus_t;
-    
-    -- Used for the instruction memory signals.
-    type memory_output_bus_t is record
-        instruction_address_bus : std_logic_vector(9 downto 0);
-        data_address_bus        : std_logic_vector(15 downto 0);
-        data_write_bus          : std_logic_vector(15 downto 0);
-        data_write_enable       : std_logic;
-    end record memory_output_bus_t;
-    
-end package datapath_types;
-
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.types.all;
-use work.datapath_types.all;
 
 
 library work;
@@ -95,6 +75,7 @@ begin
     
     -- Controller instantiation.
     control_unit : entity work.control_unit
+    
         port map (op_code           => instr_op_code,
                   in_condition      => instr_condition,
                   pc_condition      => pc_condition_out,
@@ -104,6 +85,7 @@ begin
         
     -- Register file instantiation.
     register_file : entity work.register_file
+    
         port map (read_address_1 => rs1,
                   read_address_2 => rs2,
                   write_address  => file_addr_in,
@@ -113,8 +95,10 @@ begin
                   data_out_2     => file_out_2,
                   clock          => clock);
                   
+                  
     -- Second register file that mimics true file for debugging.
     register_file_debug : entity work.register_file
+    
         port map (read_address_1 => debug_register_address,
                   read_address_2 => debug_register_address,
                   write_address  => file_addr_in,
@@ -127,6 +111,7 @@ begin
         
     -- ALU instantiation.
     alu : entity work.alu
+    
         port map (alu_op    => c_alu_op,
                   alu_in_1  => alu_in_1,
                   alu_in_2  => alu_in_2,
@@ -136,6 +121,7 @@ begin
         
     -- PC instantiation.
     pc : entity work.generic_register
+    
         port map (data_in       => pc_input, 
                   data_out      => pc_output,
                   write_enable  => '1',
