@@ -1,4 +1,5 @@
 import ply.lex as lex
+import re
 
 
 symbol_table = {}
@@ -19,42 +20,128 @@ tokens = ("ADD",
           "LOADIU",
           "ADDI",
           "LSR",
-          "LSL",
-          "LABEL",
-          "CONSTANT",
-          "REGISTER")
+          "LSL")
+
 
 
 # Regular expression rules for tokens.
-t_ADD       = r'add'
-t_SUB       = r'sub'
-t_STR       = r'str'
-t_LDR       = r'ldr'
-t_AND       = r'and'
-t_OR        = r'or'    
-t_NOT       = r'not'
-t_CMP       = r'cmp'
-t_BR        = r'br(eq|lt|gt)*'
-t_B         = r'b(eq|lt|gt)*'
-t_BL        = r'bl(eq|lt|gt)*'
-t_LOADIL    = r'loadil'
-t_LOADIU    = r'loadiu'
-t_ADDI      = r'addi'
-t_LSR       = r'lsr'
-t_LSL       = r'lsl'
-t_CONSTANT  = r' (0x[A-F0-9]+|\d+)'
-
-
-def t_REGISTER(t):
-    r'r\d{1,2}'
-    t.value = (t.value, t.value[1:])
+def t_ADD(t):
+    r'add.+'
+    
     return t
 
 
-def t_LABEL(t):
-    r'\S+$'
-    symbol_table[t.value] = len(symbol_table)
-    t.value = (t.value, symbol_table[t.value])
+def t_SUB(t):
+    r'sub.+'
+    
+    return t
+     
+     
+def t_STR(t):
+    r'str.+'
+    
+    return t
+     
+     
+def t_LDR(t):
+    r'ldr.+'
+    
+    return t
+     
+     
+def t_AND(t):
+    r'and.+'
+    
+    return t
+
+
+def t_OR(t):
+    r'or.+'
+    
+    return t  
+
+
+def t_NOT(t):
+    r'not.+'
+    
+    return t
+
+
+def t_CMP(t):
+    r'cmp.+'
+    
+    return t
+
+
+def t_LOADIL(t):
+    r'loadil.+'
+
+    instruction, rd, constant = re.sub('[,]*[ ]+[,]*', ',', t.value).split(',')
+
+    t.value = {"value"      : t.value,
+               "rd"         : rd[1:],
+               "constant"   : constant}
+    return t
+
+
+def t_LOADIU(t):
+    r'loadiu.+'
+    
+    return t
+
+
+def t_ADDI(t):
+    r'addi.+'
+    
+    return t
+
+
+def t_LSR(t):
+    r'lsr.+'
+    
+    return t
+
+
+def t_LSL(t):
+    r'lsl.+'
+    
+    return t
+
+
+def t_BR(t):
+    r'br(eq|lt|gt)* \S+$'
+    
+    branch, register = t.value.split(' ')
+    
+    t.value = {"value"      : t.value, 
+               "condition"  : branch[2:],
+               "rd"         : register[1:]}
+    return t
+
+
+def t_B(t):
+    r'b(eq|lt|gt)* \S+$'
+    
+    branch, label = t.value.split(' ')
+    symbol_table[label] = t.lexer.lineno
+    
+    t.value = {"value"      : t.value, 
+               "condition"  : branch[1:],
+               "label"      : label,
+               "address"    : symbol_table[label]}
+    return t
+
+
+def t_BL(t):
+    r'bl(eq|lt|gt)* \S+$'
+    
+    branch, label = re.sub('[,]*[ ]+[,]*', ',', t.value).split(',')
+    symbol_table[label] = t.lexer.lineno
+    
+    t.value = {"value"      : t.value, 
+               "condition"  : branch[2:],
+               "label"      : label,
+               "address"    : symbol_table[label]}
     return t
     
 
@@ -84,7 +171,8 @@ not     r2, r2
 loadiu  r3, 0x55
 lsr     r3, r3, 8
 and     r2, r2, r3
-add     r0, r0, r2''')
+add     r0, r0, r2
+beq     just_a_new_label''')
 
 
 # Input test program to lexer.
