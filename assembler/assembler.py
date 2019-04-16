@@ -1,64 +1,98 @@
-op_to_machine_code_table = {"add":     0,
-                            "sub":     1,
-                            "str":     2,
-                            "ldr":     3,
-                            "and":     4,
-                            "or":      5,
-                            "not":     6,
-                            "cmp":     7,
-                            "br":      8,
-                            "b":       9,
-                            "bl":      10,
-                            "loadil":  11,
-                            "loadiu":  12,
-                            "addi":    13,
-                            "lsr":     14,
-                            "lsl":     15}
+import ply.lex as lex
 
 
-def assembly_to_machine_code(instruction):
-    """
-    Expects input of the form "<op> <operand_1,operand_2,...,operand_n".
-    """
+symbol_table = {}
 
-    # Make output have function scope.
-    machine_code_output = ""
 
-    # Extract op and operands.
-    op, operands = instruction.split(' ', 1)
+tokens = ("ADD",
+          "SUB",
+          "STR",
+          "LDR",
+          "AND",
+          "OR",
+          "NOT",
+          "CMP",
+          "BR",
+          "B",
+          "BL",
+          "LOADIL",
+          "LOADIU",
+          "ADDI",
+          "LSR",
+          "LSL",
+          "LABEL",
+          "CONSTANT",
+          "REGISTER")
+
+
+# Regular expression rules for tokens.
+t_ADD       = r'add'
+t_SUB       = r'sub'
+t_STR       = r'str'
+t_LDR       = r'ldr'
+t_AND       = r'and'
+t_OR        = r'or'    
+t_NOT       = r'not'
+t_CMP       = r'cmp'
+t_BR        = r'br(eq|lt|gt)*'
+t_B         = r'b(eq|lt|gt)*'
+t_BL        = r'bl(eq|lt|gt)*'
+t_LOADIL    = r'loadil'
+t_LOADIU    = r'loadiu'
+t_ADDI      = r'addi'
+t_LSR       = r'lsr'
+t_LSL       = r'lsl'
+t_CONSTANT  = r' (0x[A-F0-9]+|\d+)'
+
+
+def t_REGISTER(t):
+    r'r\d{1,2}'
+    t.value = (t.value, t.value[1:])
+    return t
+
+
+def t_LABEL(t):
+    r'\S+$'
+    symbol_table[t.value] = len(symbol_table)
+    t.value = (t.value, symbol_table[t.value])
+    return t
     
-    # Strip commas from operands, and split operands
-    operands = operands.replace(',', ' ').split()
 
-    # Replace register numbers with numbers.
-    for i in range(0, len(operands)):
-        if operands[i][0] == "r":
-            operands[i] = operands[1:]
-
-    # If there is one operand, then it is J-type. Add condition as operand.
-    if len(operands) == 1:
-        if op == "b":
-            operands.insert(0, "0")
-        elif op == "beq":
-            operands.insert(0, "1")
-        elif op == "blt":
-            operands.insert(0, "2")
-        elif op == "bgt":
-            operands.insert(0, "3")
-
-    # Convert op to lower four bits of machine code - treat instructions with 3 and 2 operands differently.
-    if len(operands) == 3:
-        machine_code_output = "{0:04b}".format(int(operands[2])) + "{0:04b}".format(int(operands[1])) \
-                            + "{0:04b}".format(int(operands[0])) + "{0:04b}".format(op_to_machine_code_table[op])
-
-    elif len(operands) == 2:
-
-        # If first operand is longer, then it is J-type.
-        if len(operands[0]) > len(operands[1]):
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
 
 
-    else:
-        print("Error.")
+# Ignore commas, spaces, and tabs.
+t_ignore = ', \t'
 
 
+# Build lexer.
+lexer = lex.lex()
 
+
+# Testing.
+test_program = (
+'''loadil  r0, 1
+lsl     r0, r0, 10
+loadil  r1, 12
+sub     r0, r0, r1
+loadil  r2, 6
+loadil  r3, 8
+or      r2, r2, r3
+not     r2, r2
+loadiu  r3, 0x55
+lsr     r3, r3, 8
+and     r2, r2, r3
+add     r0, r0, r2''')
+
+
+# Input test program to lexer.
+lexer.input(test_program)
+
+                
+while True:
+    tok = lexer.token()
+    if not tok:
+        break
+    print(tok)
