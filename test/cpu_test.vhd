@@ -35,7 +35,7 @@ begin
         
     begin
   
-        wait for 1 us;
+        wait for 2 us;
   
         -- Result is stored in register 0.
         debug_register_addr <= "0000";

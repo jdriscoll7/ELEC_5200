@@ -13,7 +13,7 @@ tokens = ("INSTRUCTION",
 def t_LABEL(t):
     r'.+:'
 
-    symbol_table[t.value[:-1]] = str(t.lexer.lineno)
+    symbol_table[t.value[:-1]] = str(t.lexer.lineno - 1)
     t.lexer.lineno = t.lexer.lineno - 1
 
     t.value = {'label': t.value[:-1]}
@@ -40,10 +40,11 @@ def t_INSTRUCTION(t):
         
         elif len(instruction_tokens[0]) == 4:
             
-            t.value = {'op'     : instruction_tokens[0][0:1],
+            t.value = {'op'     : instruction_tokens[0][0:2],
                        'cond'   : instruction_tokens[0][2:]}
         
     else:
+
         t.value = {'op': instruction_tokens[0]}
     
     # Pull out operands of instruction and put them into t.value.
@@ -63,8 +64,8 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 
-def p_error(p):
-    print("Syntax error at %s"%p.value)
+def t_error(p):
+    print("Syntax error at %s" %p.value)
 
 
 # Ignore commas, spaces, and tabs.
@@ -76,20 +77,9 @@ lexer = lex.lex()
 
 
 # Testing.
-test_program = (
-'''loadil  r0, 1
-lsl     r0, r0, 10
-loadil  r1, 12
-sub     r0, r0, r1
-loadil  r2, 6
-loadil  r3, 8
-or      r2, r2, r3
-not     r2, r2
-just_a_new_label:
-loadiu  r3, 0x55
-lsr     r3, r3, 8
-and     r2, r2, r3
-add     r0, r0, r2''')
+test_program = ""
+with open('program.txt', 'r') as file:
+    test_program = file.read()
 
 
 # Instead of using parser, directly manipulate lextokens from lexer.
@@ -159,13 +149,13 @@ def generate_machine_code(token):
         condition = conditional_mapping[token.value['cond']]
         
         # Handle register branches and other branches differently.
-        if token.value['op'][0:1] == 'br':
+        if token.value['op'][0:2] == 'br':
         
             # Extract register number.
             register_number = register_number_to_binary(token.value['arg0'])
             
             # Form output binary.
-            output = '0000' + register_number + condition 
+            output = '0000' + register_number + '00' + condition
     
         else:
         
