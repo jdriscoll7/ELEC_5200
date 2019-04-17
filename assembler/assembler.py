@@ -215,6 +215,5 @@ while True:
     toks.append(tok)
 
 
-
 for token in toks:
     print(generate_machine_code(token))
