@@ -160,7 +160,8 @@ begin
     ---------------------------------------
     -- Controller datapath multiplexing. --
     ---------------------------------------
-    process(clock, control_signals, branch_address, alu_out, pc_condition_out, pc_pointer_out, instr_raw)
+    process(clock, control_signals, branch_address, alu_out, pc_condition_out, 
+            pc_pointer_out, instr_raw, memory_input_bus.data_read_bus)
     begin
     
         -- Determine PC value input.
@@ -176,7 +177,7 @@ begin
             
             else
             
-                pc_pointer_in <= file_out_1(9 downto 0);
+                pc_pointer_in <= std_logic_vector(to_unsigned(to_integer(unsigned(file_out_1(15 downto 6))) + 1, pc_pointer_in'length));
             
             end if;
         

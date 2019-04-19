@@ -36,7 +36,7 @@ begin
     begin
   
         -- Text printed on r1.
-        debug_register_addr <= "1110";        
+        debug_register_addr <= "0001";        
         wait;
     
     end process;
