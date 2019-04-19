@@ -1,16 +1,54 @@
-start:
+loadil  r0, 0
+loadiu  r1, 26
+lsr     r1, r1, 8
+loadil  r2, 0x41
+memory_init_loop:
+loadil  r4, 1
+not     r4, r4
+addi    r4, r4, 1
+add     r1, r1, r4
+add     r3, r2, r1
+str     r3, r0, r1
+cmp     r1, r0
+bgt     memory_init_loop
+loadil  r3, 0x20
+loadil  r4, 26
+str     r3, r4, r0
+main_loop:
+loadil  r14, 0
+loadil  r0, 18
+bl      print_function
+loadil  r0, 14
+bl      print_function
+loadil  r0, 26
+bl      print_function
+loadil  r0, 20
+bl      print_function
+loadil  r0, 8
+bl      print_function
 loadil  r0, 1
-lsl     r0, r0, 10
-loadil  r1, 12
-sub     r0, r0, r1
-loadil  r2, 6
-loadil  r3, 8
-or      r2, r2, r3
-not     r2, r2
-loadiu  r3, 0x55
-lsr     r3, r3, 8
-and     r2, r2, r3
-add     r0, r0, r2
-beq     start
-bllt    start
-brgt    r0
+bl      print_function
+loadil  r0, 19
+bl      print_function
+loadil  r0, 18
+bl      print_function
+loadil  r0, 26
+bl      print_function
+loadil  r0, 0
+bl      print_function
+loadil  r0, 26
+bl      print_function
+loadil  r0, 19
+bl      print_function
+loadil  r0, 7
+bl      print_function
+loadil  r0, 8
+bl      print_function
+loadil  r0, 13
+bl      print_function
+loadil  r0, 6
+bl      print_function
+b       main_loop
+print_function:
+ldr     r1, r14, r0
+br      r15

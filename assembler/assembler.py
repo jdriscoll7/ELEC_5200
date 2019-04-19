@@ -196,7 +196,7 @@ def generate_machine_code(token):
         output = rd + rs1 + rs2
             
     # Opcode always appended to end.
-    return (output + opcode)
+    return "\"" + (output + opcode)  + "\","
     
 
 

@@ -47,6 +47,8 @@ architecture behavioral of datapath is
     -- Register file related signals.
     signal file_data_in     : std_logic_vector(15 downto 0);
     signal file_addr_in     : std_logic_vector(3 downto 0);
+    signal file_read_1      : std_logic_vector(3 downto 0);
+    signal file_read_2      : std_logic_vector(3 downto 0);
     signal file_out_1       : std_logic_vector(15 downto 0);
     signal file_out_2       : std_logic_vector(15 downto 0);
     
@@ -86,8 +88,8 @@ begin
     -- Register file instantiation.
     register_file : entity work.register_file
     
-        port map (read_address_1 => rs1,
-                  read_address_2 => rs2,
+        port map (read_address_1 => file_read_1,
+                  read_address_2 => file_read_2,
                   write_address  => file_addr_in,
                   data_in        => file_data_in,
                   write_enable   => control_signals.c_reg_write,
@@ -255,6 +257,18 @@ begin
         
         end if;
         
+        
+        -- Change register read address 1 to rd if str.
+        if (control_signals.c_mem_write = '1') then
+        
+            file_read_1 <= rd;
+            
+        else
+        
+            file_read_1 <= rs1;
+        
+        end if;
+        
 
     end process;
 
@@ -280,6 +294,9 @@ begin
     
     -- Instruction memory related.
     instr_raw <= memory_input_bus.instruction_read_bus;
+    
+    -- File related.
+    file_read_2 <= rs2;
     
     -- ALU related.
     alu_in_1 <= file_out_1;

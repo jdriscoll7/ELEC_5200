@@ -35,18 +35,8 @@ begin
         
     begin
   
-        wait for 2 us;
-  
-        -- Result is stored in register 0.
-        debug_register_addr <= "0000";
-                
-        wait for 100 ns;
-                
-        -- Answer to computation is 0x445.
-        assert(debug_register_data = "0000010001000101")
-            report "Wrong answer."
-            severity FAILURE;
-        
+        -- Text printed on r1.
+        debug_register_addr <= "1110";        
         wait;
     
     end process;

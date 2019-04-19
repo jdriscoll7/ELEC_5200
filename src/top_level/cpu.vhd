@@ -52,7 +52,7 @@ begin
     -- Data memory instantiation.
     data_memory : entity work.data_memory
 
-        port map (read_address  => memory_output_bus.data_address_bus,
+        port map (address  => memory_output_bus.data_address_bus,
                   data_out      => memory_input_bus.data_read_bus,
                   write_enable  => memory_output_bus.data_write_enable,
                   write_data    => memory_output_bus.data_write_bus);

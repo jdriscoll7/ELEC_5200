@@ -1,0 +1,16 @@
+start:
+loadil  r0, 1
+lsl     r0, r0, 10
+loadil  r1, 12
+sub     r0, r0, r1
+loadil  r2, 6
+loadil  r3, 8
+or      r2, r2, r3
+not     r2, r2
+loadiu  r3, 0x55
+lsr     r3, r3, 8
+and     r2, r2, r3
+add     r0, r0, r2
+beq     start
+bllt    start
+brgt    r0

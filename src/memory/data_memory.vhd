@@ -11,7 +11,7 @@ use ieee.numeric_std.all;
 -- Memory interface.
 entity data_memory is
 
-    port    (read_address   : in  std_logic_vector(9 downto 0);
+    port    (address        : in  std_logic_vector(9 downto 0);
              data_out       : out std_logic_vector(15 downto 0);
              write_enable   : in  std_logic;
              write_data     : in  std_logic_vector(15 downto 0));
@@ -31,8 +31,13 @@ architecture behavioral of data_memory is
     
 begin
 
+    process(write_enable, write_data)
+    begin
+        if (write_enable = '1') then
+            data_memory_storage(to_integer(unsigned(address))) <= write_data;
+        end if;
+    end process;
 
-
-    data_out <= data_memory_storage(to_integer(unsigned(read_address)));
+    data_out <= data_memory_storage(to_integer(unsigned(address)));
 
 end behavioral;
